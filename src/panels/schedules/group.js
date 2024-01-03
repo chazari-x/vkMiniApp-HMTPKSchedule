@@ -1,29 +1,19 @@
 import {
-    Badge,
-    Button,
-    CardGrid, Checkbox, Counter, CustomSelect, CustomSelectOption, Div, Epic, FormItem,
-    Group, HorizontalScroll, InfoRow, Panel,
-    Placeholder,
-    PullToRefresh,
-    Separator, Spinner,
-    Tabs,
-    TabsItem,
-    usePlatform, View
+    Button, Calendar, CustomSelect, FormItem, Group, HorizontalScroll,
+    InfoRow, LocaleProvider, Tabs, TabsItem
 } from "@vkontakte/vkui";
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {GetGroupSchedule} from "../../schedule/schedule";
-import {
-    Icon16Dropdown,
-    Icon20NewsfeedOutline, Icon20PictureOutline,
-    Icon20ThumbsUpOutline, Icon20UsersOutline,
-    Icon24NewsfeedOutline, Icon24PictureOutline,
-    Icon24ThumbsUpOutline, Icon24UsersOutline
-} from "@vkontakte/icons";
-import {Dates} from "../panels";
-import {array} from "prop-types";
-import ReactDOM from "react-dom";
+import bridge from "@vkontakte/vk-bridge";
+import {addDays, capitalizeFirstLetter, openAnyError} from "../../other/other";
+import {format} from "@vkontakte/vkui/dist/lib/date";
+import {Popover} from "@vkontakte/vkui/dist/components/Popover/Popover";
+import {Icon16CalendarOutline} from "@vkontakte/icons";
+import {token} from "../../other/config";
 
-const GroupSch = ({update, fetching}) => {
+export const GroupSch = () => {
+    const [snackbar, setSnackbar] = React.useState(null);
+
     const date = new Date()
     let dayNum = date.getDay()-1
     if (dayNum === -1) {
@@ -31,78 +21,87 @@ const GroupSch = ({update, fetching}) => {
     }
 
     const [selected, setSelected] = React.useState(`group-schedule${dayNum.toString()}`);
-    const [disabled, setDisabled] = React.useState(false);
-
+    const [selectedDate, setSelectedDate] = useState(() => date);
     const Scrollable = () => {
         return (
             <Group separator="hide" mode='plain'>
                 <Tabs mode='accent'>
                     <HorizontalScroll arrowSize="m">
-                        {Dates.map(item => (
-                            <TabsItem
-                                key={`group-schedule${item.id.toString()}`}
-                                selected={selected === `group-schedule${item.id.toString()}`}
-                                disabled={disabled}
-                                onClick={() => setSelected(`group-schedule${item.id.toString()}`)}
-                                style={{
-                                    textAlign: "center",
-                                    minWidth: '3em'
+                        {[0,1,2,3,4,5,6].map(i => {
+                            let dayNum = selectedDate.getDay()-1
+                            if (dayNum === -1) {
+                                dayNum = 6
+                            }
+                            setSelected(`group-schedule${dayNum.toString()}`)
+                            let d = addDays(selectedDate, -dayNum+i)
+                            return <TabsItem
+                                key={`group-schedule${i.toString()}`}
+                                selected={selected === `group-schedule${i.toString()}`}
+                                onClick={() => {
+                                    setSelectedDate(addDays(selectedDate, -dayNum+i))
+                                    setSelected(`group-schedule${i.toString()}`)
                                 }}
+                                style={{textAlign: "center", minWidth: '3em', marginLeft: '1px', marginRight: '1px'}}
                             >
-                                <InfoRow header={item.value}>{date.getDate()-Dates[dayNum].id+item.id}</InfoRow>
+                                <InfoRow header={d.toLocaleDateString("ru", {weekday: "short"})}>{d.getDate()}</InfoRow>
                             </TabsItem>
-                        ))}
+                        })}
                     </HorizontalScroll>
                 </Tabs>
             </Group>
         );
     };
 
-    const options = [
-        {label: 'ИСП-Б-231-2021', value: 'ИСП-Б-231-2021'},
-        {label: 'ИСП-Б-231а-2021', value: 'ИСП-Б-231а-2021'},
-        {label: 'ИСП-Б-231и-2021', value: 'ИСП-Б-231и-2021'},
-    ];
-    const [group, setGroup] = React.useState('ИСП-Б-231-2021');
-    const [isVisible, setIsVisible] = useState(true);
-
+    const [group, setGroup] = React.useState();
     const onChange = (e) => {
         setGroup(e.target.value);
-        setIsVisible(false);
-
-        setTimeout(() => {
-            setIsVisible(true);
-        }, 100);
     };
 
-    if (update && !fetching) {
-        return (
-            <Group separator="hide" mode='plain'>
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                }}>
-                    <Div separator="hide" mode='plain'>
-                        {`${date.toLocaleDateString("ru", {
-                            month: "long",
-                        })}, ${date.getFullYear()}`}
-                    </Div>
-                    <FormItem style={{flex: '1'}}>
-                        <CustomSelect placeholder="Выберите группу" searchable options={options} selectType='plain' value={group} onChange={onChange}/>
-                    </FormItem>
-                </div>
-                <Scrollable/>
-                {isVisible && <GetGroupSchedule group={group} activePanel={selected}/>}
-            </Group>
-        )
-    }
+    const [fetching, setFetching] = React.useState(false);
+    const [options, setOptions] = React.useState([]);
+    const fetchOptions = () => {
+        setFetching(true);
+        bridge.send(
+            "VKWebAppCallAPIMethod",
+            {"method": "execute.getGroups", "params": {"v": "5.154", "access_token": token}}
+        ).then((data) => {
+            setOptions(data.response);
+            setFetching(false);
+        }).catch((error) => {
+            openAnyError(snackbar, setSnackbar)
+            console.log(error)
+        });
+    };
 
+    const [result, setResult] = React.useState(<div></div>);
+    useEffect(() => {
+        setResult(<GetGroupSchedule group={group} activePanel={selected} date={format(selectedDate, 'DD.MM.YYYY')}/>);
+    }, [selectedDate || selected, group]);
+
+    const [shown, setShown] = React.useState(false);
     return (
-        <Group separator="hide" mode='plain'>
+        <Group separator="hide" mode='plain' style={{paddingTop: 'var(--vkui--size_panel_header_height--regular)'}}>
+            <div style={{display: 'flex', flexDirection: 'column'}}>
+                <Popover action="click" shown={shown} onShownChange={setShown} style={{display: 'flex', justifyContent: 'center', background: 'none'}}
+                    content={<LocaleProvider value='ru'>
+                            <Calendar size='m' value={selectedDate} onChange={setSelectedDate} showNeighboringMonth={true}/>
+                        </LocaleProvider>}>
+                    <Button appearance='accent-invariable' mode='outline' style={{
+                        margin: '0 var(--vkui--size_base_padding_horizontal--regular) var(--vkui--size_base_padding_vertical--regular)',
+                        width: 'max-content'
+                    }} before={<Icon16CalendarOutline/>}>
+                        {`${capitalizeFirstLetter(
+                            selectedDate.toLocaleDateString('ru', {month: 'long', year: 'numeric'}))}`}
+                    </Button>
+                </Popover>
+                <FormItem style={{padding: '0 var(--vkui--size_base_padding_horizontal--regular)'}}>
+                    <CustomSelect placeholder="Выберите группу" searchable options={options} selectType='default' onChange={onChange}
+                                  value={group} onOpen={options.length === 0 && fetchOptions} fetching={fetching}/>
+                </FormItem>
+            </div>
             <Scrollable/>
+            {result}
+            {snackbar}
         </Group>
     )
 };
-
-export default GroupSch;

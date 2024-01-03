@@ -14,7 +14,8 @@ const Panels = [
     {id: 'mySchedule', ico: <Icon28CalendarOutline/>, value: 'Мое расписание'},
     {id: 'groupSchedule', ico: <Icon28CalendarOutline/>, value: 'Расписание группы'},
     {id: 'teacherSchedule', ico: <Icon28CalendarOutline/>, value: 'Расписание преподавателя'},
-    {id: 'settings', ico: <Icon28SettingsOutline/>, value: 'Настройки'}
+    {id: 'settings', ico: <Icon28SettingsOutline/>, value: 'Настройки'},
+    {id: 'information', ico: <Icon28SettingsOutline/>, value: 'Информация'}
 ]
 
 const Dates = [

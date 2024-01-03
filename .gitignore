@@ -1,3 +1,6 @@
 *-lock*
+src/other/config.js
 node_modules
 .idea
+*.zip
+build

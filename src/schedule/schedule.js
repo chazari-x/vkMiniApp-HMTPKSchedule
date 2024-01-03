@@ -1,40 +1,48 @@
 import React from "react";
-import {CardGrid, Cell, ContentCard, Div, Epic, Group, Header, Paragraph, Spinner} from "@vkontakte/vkui";
+import {CardGrid, ContentCard, Div, Epic, FormStatus, Group, Spinner} from "@vkontakte/vkui";
 import PropTypes from "prop-types";
 import ReactDOM from "react-dom";
 import {Dates} from "../panels/panels";
 import {Icon28User, Icon28Users} from "@vkontakte/icons";
+import {fetchSchedule, getStatusText} from "../other/other";
+import {apiHref} from "../other/config";
 
 async function fetchMoviesJSON(href, activePanel)  {
-    console.log('https://hmtpksch.chazari.ru'+href)
-
-    const response = await fetch('https://hmtpksch.chazari.ru'+href, {
-        method: "POST",
-    });
-
-    if (!response.ok) {
-        return [null, 'Возникла непредвиденная ошибка: статус код = '+response.status, activePanel]
-    }
-
+    const response = await fetch(apiHref+href, {method: "POST"});
     switch (response.status) {
-        case 200:
-            return [await response.json(), null, activePanel]
-        case 204:
-            return [null, 'За пользователем не закреплена группа/преподаватель', activePanel]
-        default:
-            return [null, 'Возникла непредвиденная ошибка: статус код = '+response.status, activePanel]
+        case 200: return [await response.json(), null, activePanel]
+        default: return [null, `${getStatusText(response.status)}`, activePanel]
     }
 }
 
-const GetGroupSchedule = ({group, week, activePanel}) => {
-    let href = '/get?key=VK&group=' + group;
+const GetGroupSchedule = ({group, date, activePanel}) => {
+    if (group === '' || group === undefined) {
+        return <Epic activeStory={activePanel}>
+            {Dates.map(item => {
+                return <Group id={`group-schedule`+item.id.toString()} key={`group-schedule`+item.id.toString()} separator='hide' mode='plain'>
+                    <FormStatus mode='default' header='Произошла ошибка' style={{
+                        margin: '2px 4px',
+                        padding: '5px',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        flex: '1',
+                    }}>
+                        Вы не выбрали группу.
+                    </FormStatus>
+                </Group>
+            })}
+        </Epic>
+    }
 
-    if (week != null) {
-        href += "&week=next"
+    let href = '/get?key=VK&group=' + group;
+    if (date != null) {
+        href += `&date=${date}`
     }
 
     fetchMoviesJSON(href, activePanel).then(res => {
         renderBlock(res, "group-schedule")
+    }).catch(err => {
+        renderBlock([null, err, activePanel], "group-schedule")
     })
 
     return <Epic activeStory={activePanel}>
@@ -46,15 +54,34 @@ const GetGroupSchedule = ({group, week, activePanel}) => {
     </Epic>
 }
 
-const GetTeacherSchedule = ({teacher, week, activePanel}) => {
-    let href = '/get?key=VK&teacher=' + teacher;
+const GetTeacherSchedule = ({teacher, date, activePanel}) => {
+    if (teacher === '' || teacher === undefined) {
+        return <Epic activeStory={activePanel}>
+            {Dates.map(item => {
+                return <Group id={`teacher-schedule`+item.id.toString()} key={`teacher-schedule`+item.id.toString()} separator='hide' mode='plain'>
+                    <FormStatus mode='default' header='Произошла ошибка' style={{
+                        margin: '2px 4px',
+                        padding: '5px',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        flex: '1',
+                    }}>
+                        Вы не выбрали преподавателя.
+                    </FormStatus>
+                </Group>
+            })}
+        </Epic>
+    }
 
-    if (week != null) {
-        href += "&week=next"
+    let href = '/get?key=VK&teacher=' + teacher;
+    if (date != null) {
+        href += `&date=${date}`
     }
 
     fetchMoviesJSON(href, activePanel).then(res => {
         renderBlock(res, "teacher-schedule")
+    }).catch(err => {
+        renderBlock([null, err, activePanel], "teacher-schedule")
     })
 
     return <Epic activeStory={activePanel}>
@@ -62,19 +89,54 @@ const GetTeacherSchedule = ({teacher, week, activePanel}) => {
             return <Group id={`teacher-schedule`+item.id.toString()} key={`teacher-schedule`+item.id.toString()} separator='hide' mode='plain'>
                 <Spinner size="large" style={{margin: '10px 0'}}/>
             </Group>
-        })}
+        }) || <Spinner size="large" style={{margin: '10px 0'}}/>}
     </Epic>
 }
 
-const GetMySchedule = ({user, week, activePanel}) => {
-    let href = '/get?key=VK&user=' + user;
+const GetMySchedule = ({date, activePanel}) => {
+    fetchSchedule().then(_ => {
+        let my = ""
 
-    if (week != null) {
-        href += "&week=next"
-    }
+        if (window['groupOrTeacher'] !== null) {
+            if (window['groupOrTeacher']['group'] !== "") {
+                my = `group=${window['groupOrTeacher']['group']}`
+            } else if (window['groupOrTeacher']['teacher'] !== "") {
+                my = `teacher=${window['groupOrTeacher']['teacher']}`
+            } else {
+                ReactDOM.render(<FormStatus mode='error' header='Произошла ошибка' style={{
+                    margin: '2px 4px',
+                    padding: '5px',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    flex: '1',
+                }}>
+                    За Вами не закреплены ни группа ни преподаватель. Измените настройки в меню "Настройки".
+                </FormStatus>, document.getElementById(activePanel))
+                return
+            }
+        }
 
-    fetchMoviesJSON(href, activePanel).then(res => {
-        renderBlock(res, "my-schedule")
+        let href = '/get?key=VK&' + my;
+        if (date != null) {
+            href += `&date=${date}`
+        }
+
+        fetchMoviesJSON(href, activePanel).then(res => {
+            renderBlock(res, 'my-schedule')
+        }).catch(err => {
+            renderBlock([null, err, activePanel], "my-schedule")
+        })
+    }).catch(err => {
+        console.log(err)
+        ReactDOM.render(<FormStatus mode='error' header='Произошла ошибка' style={{
+            margin: '2px 4px',
+            padding: '5px',
+            justifyContent: 'center',
+            alignItems: 'center',
+            flex: '1',
+        }}>
+            {err}
+        </FormStatus>, document.getElementById(activePanel))
     })
 
     return <Epic activeStory={activePanel}>
@@ -92,42 +154,30 @@ const renderBlock = (res, elementID) => {
     ReactDOM.render(<CardGrid size='l' style={{
         padding: '0',
         margin: '0'
-    }}><RenderSchedule json={res[0]} dayNum={dayNum} err={res[1]}/></CardGrid>, document.getElementById(elementID+dayNum.toString()))
+    }}><RenderSchedule json={res[0]} dayNum={dayNum} err={res[1]}/></CardGrid>, document.getElementById(res[2]))
 }
 
 const RenderSchedule = ({json, dayNum, err}) => {
     if (err !== null) {
-        return <CardGrid size='m' key='none' style={{
-            // border: 'solid 1px',
-            // borderRadius: '.5rem .5rem 0 0',
-            // borderTopColor: 'var(--vkui--color_text_primary)',
-            // borderLeftColor: 'var(--vkui--color_text_primary)',
-            // borderRightColor: 'var(--vkui--color_text_primary)',
+        return <FormStatus mode='error' header='Произошла ошибка' style={{
             margin: '2px 4px',
             padding: '5px',
             justifyContent: 'center',
             alignItems: 'center',
-            width: '100%',
+            flex: '1',
         }}>
-            <ContentCard mode='outline-tint'
-                         header={err}
-                         style={{margin: '0', flex: '1', background: 'none'}}/>
-        </CardGrid>
+            {err}
+        </FormStatus>
     }
 
     if (json[dayNum]['lesson'] === null) {
         return <CardGrid size='m' key='none' style={{
-            // border: 'solid 1px',
-            // borderRadius: '.5rem .5rem 0 0',
-            // borderTopColor: 'var(--vkui--color_text_primary)',
-            // borderLeftColor: 'var(--vkui--color_text_primary)',
-            // borderRightColor: 'var(--vkui--color_text_primary)',
             margin: '2px 4px',
             padding: '5px',
             justifyContent: 'center',
             alignItems: 'center',
             textAlign: 'center',
-            width: '100%',
+            width: '100%'
         }}>
             <ContentCard mode='outline-tint'
                          header='Занятий нет'
@@ -142,12 +192,6 @@ const RenderSchedule = ({json, dayNum, err}) => {
 
         return (
             <CardGrid size='m' key={`lesson-${lesson['num']}-num-${i}`} style={{
-                // border: 'solid 1px',
-                // borderRadius: '.5rem .5rem 0 0',
-                // borderTopColor: 'var(--vkui--color_text_primary)',
-                // borderLeftColor: 'var(--vkui--color_text_primary)',
-                // borderRightColor: 'var(--vkui--color_text_primary)',
-                // borderBottomColor: 'var(--vkui--color_text_primary)',
                 margin: '0px 4px',
                 padding: '0px',
                 justifyContent: 'center',
@@ -159,7 +203,7 @@ const RenderSchedule = ({json, dayNum, err}) => {
                              style={{flex: '0 0 4em', textAlign: 'center', background: 'none'}}/>
                 <Div style={{flex: '1', padding: 'var(--vkui--size_base_padding_vertical--regular) 0'}}>
                     <Div style={{
-                        padding: '0 0 2px 0',
+                        padding: '0 var(--vkui--size_base_padding_horizontal--regular) 2px 0',
                         fontWeight: 'var(--vkui--font_weight_accent2)',
                         marginLeft: 'var(--vkui--size_base_padding_horizontal--regular)',
                         textOverflow: 'ellipsis'
@@ -167,69 +211,50 @@ const RenderSchedule = ({json, dayNum, err}) => {
                         {lesson['name']}
                     </Div>
 
-                    {[
-                        {id: 0, value: lesson['teacher'], ico: <Icon28User width={16} height={16}/>},
-                        {id: 1, value: lesson['group'], ico: <Icon28Users width={16} height={16}/>}
-                    ].map(element => {
-                        if (element.value !== '') {
-                            if (element.id === 1) {
-                                const group = ` / подгр. ${lesson['subgroup']}`
-                                lesson['subgroup'] = ''
+                    {lesson['teacher'] !== '' && <Div style={{
+                        padding: '2px 0',
+                        marginLeft: 'var(--vkui--size_base_padding_horizontal--regular)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        fontSize: 'var(--vkui--font_headline1--font_size--compact)'
+                    }}>
+                        <Icon28User width={16} height={16} fill={color}/>{`${lesson['teacher']}`}
+                    </Div>}
 
-                                return <Div style={{
-                                    padding: '2px 0',
-                                    marginLeft: 'var(--vkui--size_base_padding_horizontal--regular)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    fontSize: 'var(--vkui--font_headline1--font_size--compact)',
-                                }}>
-                                    <div style={{color: color, marginRight: '4px'}}>{element.ico}</div>
-                                    <div>{element.value}</div>
-                                    <div style={{color: color, marginLeft: '4px'}}>{group}</div>
-                                </Div>
-                            }
+                    {lesson['group'] !== '' && <Div style={{
+                        padding: '2px 0',
+                        marginLeft: 'var(--vkui--size_base_padding_horizontal--regular)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        fontSize: 'var(--vkui--font_headline1--font_size--compact)',
+                    }}>
+                        <div style={{marginRight: '4px'}}>{<Icon28Users width={16} height={16} fill={color}/>}</div>
+                        <div>{lesson['group']}</div>
+                        <div style={{color: color, marginLeft: '4px'}}>{lesson['subgroup'] !== '' && ` / подгр. ${lesson['subgroup']}`}</div>
+                    </Div>}
 
-                            return <Div style={{
-                                padding: '2px 0',
-                                marginLeft: 'var(--vkui--size_base_padding_horizontal--regular)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                fontSize: 'var(--vkui--font_headline1--font_size--compact)'
-                            }}>
-                                {element.ico}{`${element.value}`}
-                            </Div>
-                        }
-                    })}
+                    {lesson['group'] === '' && lesson['subgroup'] !== "" &&
+                        <Div style={{
+                            padding: '2px 0',
+                            marginLeft: 'var(--vkui--size_base_padding_horizontal--regular)',
+                            fontSize: 'var(--vkui--font_headline1--font_size--compact)',
+                            color: color
+                        }}>
+                            {`подгр. ${lesson['subgroup']}`}
+                        </Div>
+                    }
 
-                    {[lesson['subgroup']].map(subgroup => {
-                        if (subgroup !== "") {
-                            return <Div style={{
-                                padding: '2px 0',
-                                marginLeft: 'var(--vkui--size_base_padding_horizontal--regular)',
-                                fontSize: 'var(--vkui--font_headline1--font_size--compact)',
-                                color: color
-                            }}>
-                                {`подгр. ${subgroup}`}
-                            </Div>
-                        }
-                    })}
-
-                    {[{room: lesson['room'], location: lesson['location']}].map(item => {
-                        if (item.room !== "" || item.location !== "") {
-                            if (item.location !== "") {
-                                item.location = ` / ${item.location}`
-                            }
-                            return <Div style={{
-                                padding: '2px 0',
-                                marginLeft: 'var(--vkui--size_base_padding_horizontal--regular)',
-                                fontSize: 'var(--vkui--font_headline1--font_size--compact)',
-                                display: 'flex',
-                                color: color
-                            }}>
-                                {`ауд. ${item.room}${item.location}`}
-                            </Div>
-                        }
-                    })}
+                    {(lesson['room'] !== "" || lesson['location'] !== "") &&
+                        <Div style={{
+                            padding: '2px 0',
+                            marginLeft: 'var(--vkui--size_base_padding_horizontal--regular)',
+                            fontSize: 'var(--vkui--font_headline1--font_size--compact)',
+                            display: 'flex',
+                            color: color
+                        }}>
+                            {`ауд. ${lesson['room']}`}{lesson['location'] !== "" && ` / ${lesson['location']}`}
+                        </Div>
+                    }
                 </Div>
             </CardGrid>
         )
@@ -247,7 +272,6 @@ GetTeacherSchedule.propTypes = {
 };
 
 GetMySchedule.propTypes = {
-    user: PropTypes.string.isRequired,
     week: PropTypes.string
 };
 
