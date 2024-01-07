@@ -2,9 +2,8 @@ import React from "react";
 import {CardGrid, ContentCard, Div, Epic, FormStatus, Group, Spinner} from "@vkontakte/vkui";
 import PropTypes from "prop-types";
 import ReactDOM from "react-dom";
-import {Dates} from "../panels/panels";
 import {Icon28User, Icon28Users} from "@vkontakte/icons";
-import {fetchSchedule, getStatusText} from "../other/other";
+import {Dates, fetchSchedule, getStatusText} from "../other/other";
 import {apiHref} from "../other/config";
 
 async function fetchMoviesJSON(href, activePanel)  {
@@ -21,14 +20,8 @@ const GetGroupSchedule = ({group, date, activePanel}) => {
             {Dates.map(item => {
                 return <Group id={`group-schedule`+item.id.toString()} key={`group-schedule`+item.id.toString()} separator='hide' mode='plain'>
                     <FormStatus mode='default' header='Произошла ошибка' style={{
-                        margin: '2px 4px',
-                        padding: '5px',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        flex: '1',
-                    }}>
-                        Вы не выбрали группу.
-                    </FormStatus>
+                        margin: '2px 4px', padding: '5px', justifyContent: 'center', alignItems: 'center', flex: '1'
+                    }}>Вы не выбрали группу.</FormStatus>
                 </Group>
             })}
         </Epic>
@@ -60,14 +53,8 @@ const GetTeacherSchedule = ({teacher, date, activePanel}) => {
             {Dates.map(item => {
                 return <Group id={`teacher-schedule`+item.id.toString()} key={`teacher-schedule`+item.id.toString()} separator='hide' mode='plain'>
                     <FormStatus mode='default' header='Произошла ошибка' style={{
-                        margin: '2px 4px',
-                        padding: '5px',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        flex: '1',
-                    }}>
-                        Вы не выбрали преподавателя.
-                    </FormStatus>
+                        margin: '2px 4px', padding: '5px', justifyContent: 'center', alignItems: 'center', flex: '1'
+                    }}>Вы не выбрали преподавателя.</FormStatus>
                 </Group>
             })}
         </Epic>
@@ -89,31 +76,23 @@ const GetTeacherSchedule = ({teacher, date, activePanel}) => {
             return <Group id={`teacher-schedule`+item.id.toString()} key={`teacher-schedule`+item.id.toString()} separator='hide' mode='plain'>
                 <Spinner size="large" style={{margin: '10px 0'}}/>
             </Group>
-        }) || <Spinner size="large" style={{margin: '10px 0'}}/>}
+        })}
     </Epic>
 }
 
 const GetMySchedule = ({date, activePanel}) => {
     fetchSchedule().then(_ => {
-        let my = ""
+        if (window['groupOrTeacher'] === null) {
+            throw "За Вами не закреплены ни группа ни преподаватель. Измените настройки в меню \"Настройки\"."
+        }
 
-        if (window['groupOrTeacher'] !== null) {
-            if (window['groupOrTeacher']['group'] !== "") {
-                my = `group=${window['groupOrTeacher']['group']}`
-            } else if (window['groupOrTeacher']['teacher'] !== "") {
-                my = `teacher=${window['groupOrTeacher']['teacher']}`
-            } else {
-                ReactDOM.render(<FormStatus mode='error' header='Произошла ошибка' style={{
-                    margin: '2px 4px',
-                    padding: '5px',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    flex: '1',
-                }}>
-                    За Вами не закреплены ни группа ни преподаватель. Измените настройки в меню "Настройки".
-                </FormStatus>, document.getElementById(activePanel))
-                return
-            }
+        let my = ""
+        if (window['groupOrTeacher']['group'] !== "") {
+            my = `group=${window['groupOrTeacher']['group']}`
+        } else if (window['groupOrTeacher']['teacher'] !== "") {
+            my = `teacher=${window['groupOrTeacher']['teacher']}`
+        } else {
+            throw "За Вами не закреплены ни группа ни преподаватель. Измените настройки в меню \"Настройки\"."
         }
 
         let href = '/get?key=VK&' + my;
@@ -127,15 +106,12 @@ const GetMySchedule = ({date, activePanel}) => {
             renderBlock([null, err, activePanel], "my-schedule")
         })
     }).catch(err => {
-        console.log(err)
         ReactDOM.render(<FormStatus mode='error' header='Произошла ошибка' style={{
-            margin: '2px 4px',
-            padding: '5px',
-            justifyContent: 'center',
-            alignItems: 'center',
-            flex: '1',
+            margin: '2px 4px', padding: '5px', justifyContent: 'center', alignItems: 'center', flex: '1'
         }}>
-            {err}
+            {err === "За Вами не закреплены ни группа ни преподаватель. Измените настройки в меню \"Настройки\"."
+                ? "За Вами не закреплены ни группа ни преподаватель. Измените настройки в меню \"Настройки\"."
+            : "Произошла ошибка при получении Ваше группы." && function () {console.log(err)}}
         </FormStatus>, document.getElementById(activePanel))
     })
 
@@ -149,40 +125,22 @@ const GetMySchedule = ({date, activePanel}) => {
 }
 
 const renderBlock = (res, elementID) => {
-    const dayNum = parseInt(res[2].replaceAll(elementID, ''), 10)
-
-    ReactDOM.render(<CardGrid size='l' style={{
-        padding: '0',
-        margin: '0'
-    }}><RenderSchedule json={res[0]} dayNum={dayNum} err={res[1]}/></CardGrid>, document.getElementById(res[2]))
+    ReactDOM.render(<CardGrid size='l' style={{padding: '0', margin: '0'}}>
+        <RenderSchedule json={res[0]} dayNum={parseInt(res[2].replaceAll(elementID, ''), 10)} err={res[1]}/>
+    </CardGrid>, document.getElementById(res[2]))
 }
 
 const RenderSchedule = ({json, dayNum, err}) => {
     if (err !== null) {
         return <FormStatus mode='error' header='Произошла ошибка' style={{
-            margin: '2px 4px',
-            padding: '5px',
-            justifyContent: 'center',
-            alignItems: 'center',
-            flex: '1',
-        }}>
-            {err}
-        </FormStatus>
+            margin: '2px 4px', padding: '5px', justifyContent: 'center', alignItems: 'center', flex: '1'
+        }}>{err}</FormStatus>
     }
 
     if (json[dayNum]['lesson'] === null) {
         return <CardGrid size='m' key='none' style={{
-            margin: '2px 4px',
-            padding: '5px',
-            justifyContent: 'center',
-            alignItems: 'center',
-            textAlign: 'center',
-            width: '100%'
-        }}>
-            <ContentCard mode='outline-tint'
-                         header='Занятий нет'
-                         style={{margin: '0', flex: '1', background: 'none'}}/>
-        </CardGrid>
+            margin: '2px 4px', padding: '5px', justifyContent: 'center', alignItems: 'center', textAlign: 'center', width: '100%'
+        }}><ContentCard mode='outline-tint' header='Занятий нет' style={{margin: '0', flex: '1', background: 'none'}}/></CardGrid>
     }
 
     let i = 0
@@ -192,41 +150,25 @@ const RenderSchedule = ({json, dayNum, err}) => {
 
         return (
             <CardGrid size='m' key={`lesson-${lesson['num']}-num-${i}`} style={{
-                margin: '0px 4px',
-                padding: '0px',
-                justifyContent: 'center',
-                alignItems: 'center',
-                width: '100%',
+                margin: '0px 4px', padding: '0px', justifyContent: 'center', alignItems: 'center', width: '100%'
             }}>
-                <ContentCard mode='outline-tint'
-                             text={lesson['time'].replaceAll('- ', '')}
+                <ContentCard mode='outline-tint' text={lesson['time'].replaceAll('- ', '')}
                              style={{flex: '0 0 4em', textAlign: 'center', background: 'none'}}/>
                 <Div style={{flex: '1', padding: 'var(--vkui--size_base_padding_vertical--regular) 0'}}>
                     <Div style={{
                         padding: '0 var(--vkui--size_base_padding_horizontal--regular) 2px 0',
-                        fontWeight: 'var(--vkui--font_weight_accent2)',
-                        marginLeft: 'var(--vkui--size_base_padding_horizontal--regular)',
-                        textOverflow: 'ellipsis'
-                    }}>
-                        {lesson['name']}
-                    </Div>
+                        textOverflow: 'ellipsis', fontWeight: 'var(--vkui--font_weight_accent2)',
+                        marginLeft: 'var(--vkui--size_base_padding_horizontal--regular)'
+                    }}>{lesson['name']}</Div>
 
                     {lesson['teacher'] !== '' && <Div style={{
-                        padding: '2px 0',
-                        marginLeft: 'var(--vkui--size_base_padding_horizontal--regular)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        fontSize: 'var(--vkui--font_headline1--font_size--compact)'
-                    }}>
-                        <Icon28User width={16} height={16} fill={color}/>{`${lesson['teacher']}`}
-                    </Div>}
+                        padding: '2px 0', marginLeft: 'var(--vkui--size_base_padding_horizontal--regular)',
+                        display: 'flex', alignItems: 'center', fontSize: 'var(--vkui--font_headline1--font_size--compact)'
+                    }}><Icon28User width={16} height={16} fill={color}/>{`${lesson['teacher']}`}</Div>}
 
                     {lesson['group'] !== '' && <Div style={{
-                        padding: '2px 0',
-                        marginLeft: 'var(--vkui--size_base_padding_horizontal--regular)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        fontSize: 'var(--vkui--font_headline1--font_size--compact)',
+                        padding: '2px 0', marginLeft: 'var(--vkui--size_base_padding_horizontal--regular)',
+                        display: 'flex', alignItems: 'center', fontSize: 'var(--vkui--font_headline1--font_size--compact)',
                     }}>
                         <div style={{marginRight: '4px'}}>{<Icon28Users width={16} height={16} fill={color}/>}</div>
                         <div>{lesson['group']}</div>
@@ -235,25 +177,16 @@ const RenderSchedule = ({json, dayNum, err}) => {
 
                     {lesson['group'] === '' && lesson['subgroup'] !== "" &&
                         <Div style={{
-                            padding: '2px 0',
-                            marginLeft: 'var(--vkui--size_base_padding_horizontal--regular)',
-                            fontSize: 'var(--vkui--font_headline1--font_size--compact)',
-                            color: color
-                        }}>
-                            {`подгр. ${lesson['subgroup']}`}
-                        </Div>
+                            padding: '2px 0', marginLeft: 'var(--vkui--size_base_padding_horizontal--regular)',
+                            fontSize: 'var(--vkui--font_headline1--font_size--compact)', color: color
+                        }}>{`подгр. ${lesson['subgroup']}`}</Div>
                     }
 
                     {(lesson['room'] !== "" || lesson['location'] !== "") &&
                         <Div style={{
-                            padding: '2px 0',
-                            marginLeft: 'var(--vkui--size_base_padding_horizontal--regular)',
-                            fontSize: 'var(--vkui--font_headline1--font_size--compact)',
-                            display: 'flex',
-                            color: color
-                        }}>
-                            {`ауд. ${lesson['room']}`}{lesson['location'] !== "" && ` / ${lesson['location']}`}
-                        </Div>
+                            padding: '2px 0', marginLeft: 'var(--vkui--size_base_padding_horizontal--regular)',
+                            fontSize: 'var(--vkui--font_headline1--font_size--compact)', display: 'flex', color: color
+                        }}>{`ауд. ${lesson['room']}`}{lesson['location'] !== "" && ` / ${lesson['location']}`}</Div>
                     }
                 </Div>
             </CardGrid>

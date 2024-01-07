@@ -1,31 +1,13 @@
 import React from 'react';
 import {
-	AdaptivityProvider,
-	AppRoot,
-	ConfigProvider,
-	SplitLayout,
-	SplitCol,
-	usePlatform,
-	Platform,
-	PanelHeader,
-	Group,
-	Epic,
-	PanelHeaderContent,
-	PanelHeaderContext,
-	SimpleCell,
-	PullToRefresh,
+	AdaptivityProvider, AppRoot, ConfigProvider, SplitLayout, SplitCol, usePlatform, Platform, PanelHeader, Group,
+	Epic, PanelHeaderContent, PanelHeaderContext, SimpleCell, PullToRefresh,
 } from '@vkontakte/vkui';
 import '@vkontakte/vkui/dist/vkui.css';
-import "./panels/panels";
-import {
-	Icon24Done,
-	Icon28Menu,
-} from "@vkontakte/icons";
+import {Icon24Done, Icon28CalendarOutline, Icon28Menu, Icon28SettingsOutline} from "@vkontakte/icons";
 import {MySch} from "./panels/schedules/my";
 import {GroupSch} from "./panels/schedules/group";
 import {TeacherSch} from "./panels/schedules/teacher";
-import {Settings} from "./panels/settings";
-import {Panels} from "./panels/panels";
 import {Information} from "./panels/information";
 
 const App = () => {
@@ -34,10 +16,9 @@ const App = () => {
 		setContextOpened((prev) => !prev);
 	};
 
-	const [mode, setMode] = React.useState(() => Panels[3].id);
+	const [mode, setMode] = React.useState("mySchedule");
 	const select = (e) => {
-		const mode = e.currentTarget.dataset.mode;
-		setMode(mode);
+		setMode(e.currentTarget.dataset.mode);
 		requestAnimationFrame(toggleContext);
 	};
 
@@ -52,6 +33,13 @@ const App = () => {
 		}, 100);
 	}, []);
 
+	const Panels = new Map();
+	Panels.set("mySchedule", {ico: <Icon28CalendarOutline/>, value: 'Мое расписание', element: <MySch/>});
+	Panels.set("groupSchedule", {ico: <Icon28CalendarOutline/>, value: 'Расписание группы', element: <GroupSch/>});
+	Panels.set("teacherSchedule", {ico: <Icon28CalendarOutline/>, value: 'Расписание преподавателя', element: <TeacherSch/>});
+	Panels.set("information", {ico: <Icon28SettingsOutline/>, value: 'Информация', element: <Information/>});
+	const PanelsKeys = Array.from(Panels.keys());
+
 	return (
 		<ConfigProvider>
 			<AdaptivityProvider>
@@ -59,41 +47,30 @@ const App = () => {
 					<SplitLayout style={{justifyContent: 'center'}} header={hasHeader && <PanelHeader separator={false}/>}>
 						<SplitCol width="100%" maxWidth="560px" stretchedOnMobile>
 							<PullToRefresh onRefresh={onRefresh} isFetching={fetching} style={{height: '100%'}}>
-								<PanelHeader before={<Icon28Menu onClick={toggleContext} style={{marginLeft: '10px'}} />}
-											 separator={false} visor={false}>
+								<PanelHeader before={<Icon28Menu onClick={toggleContext} style={{marginLeft: '10px'}}/>}
+											 separator={false} visor={false}
+								>
 									<PanelHeaderContent>
-										{function (mode, panels) {
-											for (let i = 3; i < panels.length; i++) {
-												if (panels[i].id === mode) {return (panels[i].value)}
-											}
-											return ('ХМТПК Расписание')
-										}(mode, Panels)}
+										{Panels.has(mode) ? Panels.get(mode).value : 'ХМТПК Расписание'}
 									</PanelHeaderContent>
 								</PanelHeader>
 								<PanelHeaderContext opened={contextOpened} onClose={toggleContext}>
-									{Panels.slice(3).map((panel) => (
+									{PanelsKeys.map((key) => (
 										<SimpleCell
-											key={panel.id} before={panel.ico} onClick={select} data-mode={panel.id}
-											after={mode === panel.id ? <Icon24Done fill="var(--vkui--color_icon_accent)" /> : null}
-											style={{
-												margin: '0px 0px 3px', borderRadius: '.5rem',
-												backgroundColor: 'var(--vkui--color_background_content)'
-											}}
-										>{panel.value}</SimpleCell>
+											key={key} before={Panels.get(key).ico} onClick={select} data-mode={key}
+											after={mode === key ? <Icon24Done fill="var(--vkui--color_icon_accent)" /> : null}
+											style={{margin: '0px 0px 3px', borderRadius: '.5rem',
+												backgroundColor: 'var(--vkui--color_background_content)'}}
+										>{Panels.get(key).value}</SimpleCell>
 									))}
 								</PanelHeaderContext>
 								<Epic activeStory={mode} style={{marginTop: '2.5px', height: '100%'}}>
-									{[	// {panel: Panels[0], element: <Notify/>},
-										// {panel: Panels[1], element: <News/>},
-										// {panel: Panels[2], element: <College/>},
-										{panel: Panels[3], element: <MySch/>},
-										{panel: Panels[4], element: <GroupSch/>},
-										{panel: Panels[5], element: <TeacherSch/>},
-										{panel: Panels[6], element: <Settings/>},
-										{panel: Panels[7], element: <Information/>}
-									].map(i => {
-										return (<Group separator='hide' key={i.panel.id} id={i.panel.id}
-												hidden={!(mode===i.panel.id)}>{i.element}</Group>)
+									{PanelsKeys.map(key => {
+										return (
+											<Group separator='hide' key={key} id={key} hidden={!(mode===key)}>
+												{Panels.get(key).element}
+											</Group>
+										)
 									})}
 								</Epic>
 							</PullToRefresh>

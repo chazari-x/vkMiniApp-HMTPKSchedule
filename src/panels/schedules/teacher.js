@@ -1,12 +1,9 @@
-import {
-    Button, Calendar, CustomSelect, FormItem, Group,
-    HorizontalScroll, InfoRow, LocaleProvider, Tabs, TabsItem
-} from "@vkontakte/vkui";
+import {Button, Calendar, CustomSelect, FormItem, Group, LocaleProvider} from "@vkontakte/vkui";
 import {Icon16CalendarOutline,} from "@vkontakte/icons";
 import React, {useEffect, useState} from "react";
 import {GetTeacherSchedule} from "../../schedule/schedule";
 import bridge from "@vkontakte/vk-bridge";
-import {addDays, capitalizeFirstLetter, openAnyError} from "../../other/other";
+import {capitalizeFirstLetter, openAnyError, Scrollable} from "../../other/other";
 import {format} from "@vkontakte/vkui/dist/lib/date";
 import {Popover} from "@vkontakte/vkui/dist/components/Popover/Popover";
 import {token} from "../../other/config";
@@ -22,32 +19,6 @@ export const TeacherSch = () => {
 
     const [selected, setSelected] = React.useState(`teacher-schedule${dayNum.toString()}`);
     const [selectedDate, setSelectedDate] = useState(() => date);
-    const Scrollable = () => {
-        return (
-            <Group separator="hide" mode='plain'>
-                <Tabs mode='accent'>
-                    <HorizontalScroll arrowSize="m">
-                        {[0,1,2,3,4,5,6].map(i => {
-                            let dayNum = selectedDate.getDay()-1
-                            if (dayNum === -1) {
-                                dayNum = 6
-                            }
-                            setSelected(`teacher-schedule${dayNum.toString()}`)
-                            let d = addDays(selectedDate, -dayNum+i)
-                            return <TabsItem
-                                key={`teacher-schedule${i.toString()}`} selected={selected === `teacher-schedule${i.toString()}`}
-                                onClick={() => {setSelectedDate(addDays(selectedDate, -dayNum+i))
-                                    setSelected(`teacher-schedule${i.toString()}`)}}
-                                style={{textAlign: "center", minWidth: '3em', marginLeft: '1px', marginRight: '1px'}}
-                            >
-                                <InfoRow header={d.toLocaleDateString("ru", {weekday: "short"})}>{d.getDate()}</InfoRow>
-                            </TabsItem>
-                        })}
-                    </HorizontalScroll>
-                </Tabs>
-            </Group>
-        );
-    };
 
     const [teacher, setTeacher] = React.useState();
     const onChange = (e) => {
@@ -100,7 +71,7 @@ export const TeacherSch = () => {
                     />
                 </FormItem>
             </div>
-            <Scrollable/>
+            <Scrollable setSelected={setSelected} selectedDate={selectedDate} setSelectedDate={setSelectedDate} selected={selected} type='teacher-schedule'/>
             {result}
             {snackbar}
         </Group>

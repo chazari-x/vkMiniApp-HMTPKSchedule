@@ -1,11 +1,8 @@
-import {
-    Button, Calendar, CustomSelect, FormItem, Group, HorizontalScroll,
-    InfoRow, LocaleProvider, Tabs, TabsItem
-} from "@vkontakte/vkui";
+import {Button, Calendar, CustomSelect, FormItem, Group, LocaleProvider} from "@vkontakte/vkui";
 import React, {useEffect, useState} from "react";
 import {GetGroupSchedule} from "../../schedule/schedule";
 import bridge from "@vkontakte/vk-bridge";
-import {addDays, capitalizeFirstLetter, openAnyError} from "../../other/other";
+import {capitalizeFirstLetter, openAnyError, Scrollable} from "../../other/other";
 import {format} from "@vkontakte/vkui/dist/lib/date";
 import {Popover} from "@vkontakte/vkui/dist/components/Popover/Popover";
 import {Icon16CalendarOutline} from "@vkontakte/icons";
@@ -22,35 +19,6 @@ export const GroupSch = () => {
 
     const [selected, setSelected] = React.useState(`group-schedule${dayNum.toString()}`);
     const [selectedDate, setSelectedDate] = useState(() => date);
-    const Scrollable = () => {
-        return (
-            <Group separator="hide" mode='plain'>
-                <Tabs mode='accent'>
-                    <HorizontalScroll arrowSize="m">
-                        {[0,1,2,3,4,5,6].map(i => {
-                            let dayNum = selectedDate.getDay()-1
-                            if (dayNum === -1) {
-                                dayNum = 6
-                            }
-                            setSelected(`group-schedule${dayNum.toString()}`)
-                            let d = addDays(selectedDate, -dayNum+i)
-                            return <TabsItem
-                                key={`group-schedule${i.toString()}`}
-                                selected={selected === `group-schedule${i.toString()}`}
-                                onClick={() => {
-                                    setSelectedDate(addDays(selectedDate, -dayNum+i))
-                                    setSelected(`group-schedule${i.toString()}`)
-                                }}
-                                style={{textAlign: "center", minWidth: '3em', marginLeft: '1px', marginRight: '1px'}}
-                            >
-                                <InfoRow header={d.toLocaleDateString("ru", {weekday: "short"})}>{d.getDate()}</InfoRow>
-                            </TabsItem>
-                        })}
-                    </HorizontalScroll>
-                </Tabs>
-            </Group>
-        );
-    };
 
     const [group, setGroup] = React.useState();
     const onChange = (e) => {
@@ -99,7 +67,7 @@ export const GroupSch = () => {
                                   value={group} onOpen={options.length === 0 && fetchOptions} fetching={fetching}/>
                 </FormItem>
             </div>
-            <Scrollable/>
+            <Scrollable setSelected={setSelected} selectedDate={selectedDate} setSelectedDate={setSelectedDate} selected={selected} type='group-schedule'/>
             {result}
             {snackbar}
         </Group>

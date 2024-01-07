@@ -1,4 +1,4 @@
-import {CustomSelect, Epic, Footnote, FormItem, FormStatus, Group, Snackbar} from "@vkontakte/vkui";
+import {CardGrid, CustomSelect, Epic, FormItem, FormStatus, Group, Snackbar} from "@vkontakte/vkui";
 import React, {useEffect} from "react";
 import bridge from "@vkontakte/vk-bridge";
 import ReactDOM from "react-dom";
@@ -12,15 +12,15 @@ export const Settings = () => {
         if (snackbar) return;
         setSnackbar(<Snackbar onClose={() => setSnackbar(null)}
                               before={<Icon28CheckCircleOutline fill="var(--vkui--color_icon_positive)" />}
-            >Настройки изменены</Snackbar>,
+            >Настройки изменены</Snackbar>
         );
-    };
+    }
 
     const openError = () => {
         if (snackbar) return;
         setSnackbar(<Snackbar onClose={() => setSnackbar(null)}
                               before={<Icon28ErrorCircleOutline fill="var(--vkui--color_icon_negative)"/>}
-            >Не удалось применить изменения</Snackbar>,
+            >Не удалось применить изменения</Snackbar>
         );
     };
 
@@ -132,26 +132,21 @@ export const Settings = () => {
     const teacherName = "Преподаватель"
     const groupName = "Группа"
 
-    return <Group separator='hide' mode='plain' id='settings-menu'
-                  style={{height: 'calc(100vh - 2*var(--vkui--size_panel_header_height--regular))',
-                      margin: '0', paddingTop: 'var(--vkui--size_panel_header_height--regular)'
-    }}>
-        <Footnote style={{padding: "0 var(--vkui--size_base_padding_horizontal--regular"}}>Мое расписание</Footnote>
-        <div>
+    return <Group id='settings-menu' style={{width: '100vw'}}>
+        <CardGrid size="l">
             <FormItem
                 style={{
-                    flex: '1', padding: 'var(--vkui--size_base_padding_vertical--regular) ' +
-                        'var(--vkui--size_base_padding_horizontal--regular)',
+                    flex: '1', padding: '0 0 var(--vkui--size_base_padding_vertical--regular) 0',
                 }}>
                 <CustomSelect
                     placeholder="Выберите тип расписания" value={menu} onChange={onMenuChange}
-                    options={[{label: groupName, value: groupName,}, {label: teacherName, value: teacherName}]}
+                    options={[{label: groupName, value: groupName}, {label: teacherName, value: teacherName}]}
                 />
             </FormItem>
-            <Epic activeStory={menu} style={{padding: 'var(--vkui--size_base_padding_vertical--regular) 0'}}>
+            <Epic activeStory={menu} style={{padding: 'var(--vkui--size_base_padding_vertical--regular) 0 0'}}>
                 <Group id={groupName} separator="hide" mode='plain'>
                     <FormItem
-                        style={{flex: '1', padding: '0 var(--vkui--size_base_padding_horizontal--regular)'}}>
+                        style={{flex: '1', padding: '0'}}>
                         <CustomSelect
                             placeholder="Выберите группу" searchable options={groupOptions} onChange={onGroupChange}
                             value={group} onOpen={groupOptions.length === 0 && fetchGroups} fetching={groupFetching}
@@ -159,7 +154,7 @@ export const Settings = () => {
                     </FormItem>
                 </Group>
                 <Group id={teacherName} separator="hide" mode='plain'>
-                    <FormItem style={{flex: '1', padding: '0 var(--vkui--size_base_padding_horizontal--regular)'}}>
+                    <FormItem style={{flex: '1', padding: '0'}}>
                         <CustomSelect
                             placeholder="Выберите преподавателя" searchable options={teacherOptions} onChange={onTeacherChange}
                             value={teacher} onOpen={teacherOptions.length === 0 && fetchTeachers} fetching={teacherFetching}
@@ -167,7 +162,7 @@ export const Settings = () => {
                     </FormItem>
                 </Group>
             </Epic>
-        </div>
-        {snackbar}
+            {snackbar}
+        </CardGrid>
     </Group>
 };

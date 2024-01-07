@@ -1,5 +1,4 @@
 import React from 'react';
-
 import {Group, Paragraph, Link} from '@vkontakte/vkui';
 import "@vkontakte/icons";
 import {Icon24ExternalLinkOutline} from "@vkontakte/icons";

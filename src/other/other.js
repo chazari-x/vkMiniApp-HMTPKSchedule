@@ -1,19 +1,14 @@
 import bridge from "@vkontakte/vk-bridge";
 import React from "react";
 import {token} from "./config";
-import {Snackbar} from "@vkontakte/vkui";
+import {Badge, Group, HorizontalScroll, Snackbar, Tabs, TabsItem} from "@vkontakte/vkui";
 import {Icon28ErrorCircleOutline} from "@vkontakte/icons";
+import {format} from "@vkontakte/vkui/dist/lib/date";
 
 const capitalizeFirstLetter = (str) => {
     let chars = str.split('');
     chars[0] = chars[0].toUpperCase();
     return chars.join('');
-}
-
-const addDays = (date, days) => {
-    let result = new Date(date);
-    result.setDate(result.getDate() + days);
-    return result;
 }
 
 const getStatusText = (statusCode) => {
@@ -94,7 +89,12 @@ async function fetchSchedule() {
         }
     )
 
-    window['groupOrTeacher'] = JSON.parse(await response.response[0].value)
+    const groupOrTeacher = await response.response[0].value
+    if (groupOrTeacher !== "") {
+        window['groupOrTeacher'] = JSON.parse(groupOrTeacher)
+    } else {
+        window['groupOrTeacher'] = {"group": "", "teacher": ""}
+    }
 }
 
 const openAnyError = (snackbar, setSnackbar) => {
@@ -105,4 +105,59 @@ const openAnyError = (snackbar, setSnackbar) => {
     );
 };
 
-export {capitalizeFirstLetter, addDays, getStatusText, fetchSchedule, openAnyError};
+const Dates = [
+    {id: 0, value: 'ПН'},
+    {id: 1, value: 'ВТ'},
+    {id: 2, value: 'СР'},
+    {id: 3, value: 'ЧТ'},
+    {id: 4, value: 'ПТ'},
+    {id: 5, value: 'СБ'},
+    {id: 6, value: 'ВС'}
+]
+
+const Scrollable = ({selectedDate, setSelected, setSelectedDate, selected, type}) => {
+    const addDays = (date, days) => {
+        let result = new Date(date);
+        result.setDate(result.getDate() + days);
+        return result;
+    }
+
+    return (
+        <Group separator="hide" mode='plain'>
+            <Tabs mode='accent' style={{display: 'flex', justifyContent: 'center'}}>
+                <HorizontalScroll arrowSize="m">
+                    {[-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13].map(i => {
+                        let dayNum = selectedDate.getDay() - 1
+                        if (dayNum === -1) {
+                            dayNum = 6
+                        }
+                        let ii = i
+                        if (ii > 6) {ii -= 7} else if (ii < 0) {ii += 7}
+                        setSelected(`${type}${dayNum.toString()}`)
+                        let d = addDays(selectedDate, -dayNum + i)
+                        return <TabsItem
+                            key={`${type}${i.toString()}`}
+                            selected={selected === `${type}${i.toString()}`}
+                            onClick={() => {
+                                setSelectedDate(addDays(selectedDate, -dayNum + i))
+                                setSelected(`${type}${ii.toString()}`)
+                            }}
+                            style={{textAlign: "center", minWidth: '2.5em', marginLeft: '1px', marginRight: '1px'}}
+                        >
+                            <div style={i < 0 || i > 6
+                                ? {display: 'flex', flexDirection: 'column', fontWeight: '200'}
+                                : {color: 'var(--vkui--color_text_primary)', display: 'flex', flexDirection: 'column'}}>
+                                <div>{d.toLocaleDateString("ru", {weekday: "short"}).toUpperCase()}</div>
+                                <div>{d.getDate()}</div>
+                                {format(d, 'DD.MM.YYYY') === format(new Date(), 'DD.MM.YYYY')
+                                    ? <Badge mode="prominent" style={{position: 'absolute', right: '0', bottom: '0'}}/> : null}
+                            </div>
+                        </TabsItem>
+                    })}
+                </HorizontalScroll>
+            </Tabs>
+        </Group>
+    );
+};
+
+export {capitalizeFirstLetter, getStatusText, fetchSchedule, openAnyError, Dates, Scrollable};
