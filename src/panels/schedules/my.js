@@ -33,7 +33,7 @@ export const MySch = () => {
     return (
         <Group separator="hide" mode='plain' style={{paddingTop: 'var(--vkui--size_panel_header_height--regular)'}}>
             <Epic  activeStory={activePanel}>
-                <Group id="panel1">
+                <Group id="panel1" separator="hide" mode='plain' >
                     <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
                         <Popover action="click" shown={calendar} onShownChange={setCalendar} style={{display: 'flex', justifyContent: 'center', background: 'none'}}
                                  content={<LocaleProvider value='ru'>
@@ -58,7 +58,7 @@ export const MySch = () => {
                     <Scrollable setSelected={setSelected} selectedDate={selectedDate} setSelectedDate={setSelectedDate} selected={selected} type='my-schedule'/>
                     {result}
                 </Group>
-                <Group id="settings">
+                <Group id="settings" separator="hide" mode='plain' >
                     <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
                         <Popover action="click" shown={calendar} onShownChange={setCalendar}
                                  style={{display: 'flex', justifyContent: 'center', background: 'none'}}
