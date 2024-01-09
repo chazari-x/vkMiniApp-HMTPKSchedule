@@ -1,4 +1,4 @@
-import {Button, Calendar, CustomSelect, FormItem, Group, LocaleProvider} from "@vkontakte/vkui";
+import {Button, Calendar, CustomSelect, Epic, FormItem, Group, LocaleProvider, Spinner} from "@vkontakte/vkui";
 import React, {useEffect, useState} from "react";
 import {GetGroupSchedule} from "../../schedule/schedule";
 import bridge from "@vkontakte/vk-bridge";
@@ -19,6 +19,16 @@ export const GroupSch = () => {
 
     const [selected, setSelected] = React.useState(`group-schedule${dayNum.toString()}`);
     const [selectedDate, setSelectedDate] = useState(() => date);
+    const [resultStory, setResultStory] = React.useState('load');
+    const change = (date) => {
+        setSelectedDate(date)
+        let dayNum = date.getDay() - 1
+        if (dayNum === -1) {
+            dayNum = 6
+        }
+        setSelected(`group-schedule${dayNum.toString()}`)
+        setResultStory("load")
+    }
 
     const [group, setGroup] = React.useState();
     const onChange = (e) => {
@@ -43,6 +53,7 @@ export const GroupSch = () => {
 
     const [result, setResult] = React.useState(<div></div>);
     useEffect(() => {
+        setResultStory('schedule')
         setResult(<GetGroupSchedule group={group} activePanel={selected} date={format(selectedDate, 'DD.MM.YYYY')}/>);
     }, [selectedDate || selected, group]);
 
@@ -52,7 +63,7 @@ export const GroupSch = () => {
             <div style={{display: 'flex', flexDirection: 'column'}}>
                 <Popover action="click" shown={shown} onShownChange={setShown} style={{display: 'flex', justifyContent: 'center', background: 'none'}}
                     content={<LocaleProvider value='ru'>
-                            <Calendar size='m' value={selectedDate} onChange={setSelectedDate} showNeighboringMonth={true}/>
+                            <Calendar size='m' value={selectedDate} onChange={change} showNeighboringMonth={true}/>
                         </LocaleProvider>}>
                     <Button appearance='accent-invariable' mode='outline' style={{
                         margin: '0 var(--vkui--size_base_padding_horizontal--regular) var(--vkui--size_base_padding_vertical--regular)',
@@ -67,8 +78,15 @@ export const GroupSch = () => {
                                   value={group} onOpen={options.length === 0 && fetchOptions} fetching={fetching}/>
                 </FormItem>
             </div>
-            <Scrollable setSelected={setSelected} selectedDate={selectedDate} setSelectedDate={setSelectedDate} selected={selected} type='group-schedule'/>
-            {result}
+            <Scrollable setSelected={setSelected} selectedDate={selectedDate} setSelectedDate={change} selected={selected} type='group-schedule'/>
+            <Epic activeStory={resultStory}>
+                <Group id="schedule" separator="hide" mode='plain'>
+                    {result}
+                </Group>
+                <Group id="load" separator="hide" mode='plain'>
+                    <Spinner size="large" style={{margin: '10px 0'}}/>
+                </Group>
+            </Epic>
             {snackbar}
         </Group>
     )

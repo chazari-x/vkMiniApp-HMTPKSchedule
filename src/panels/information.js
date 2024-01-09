@@ -35,7 +35,7 @@ export const Information = () => {
 				</div>
 				<div style={{marginBottom: '10px', textAlign: "justify"}}>
 					<Paragraph>
-						<Link href={groupHref}>
+						<Link href={groupHref} target="_blank">
 							Разработчик: {groupName}
 							<Icon24ExternalLinkOutline width={16} height={16} />
 						</Link> принимает жалобы и предложения.
@@ -43,7 +43,7 @@ export const Information = () => {
 				</div>
 				<div style={{textAlign: "justify"}}>
 					<Paragraph>
-						<Link href='https://hmtpk.ru/'>
+						<Link href='https://hmtpk.ru/' target="_blank">
 							Официальный сайт Ханты-Мансийского технолого-педагогического колледжа
 							<Icon24ExternalLinkOutline width={16} height={16} />
 						</Link> является официальным источником информации о расписании,

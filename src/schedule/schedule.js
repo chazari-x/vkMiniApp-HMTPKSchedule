@@ -1,8 +1,8 @@
 import React from "react";
-import {CardGrid, ContentCard, Div, Epic, FormStatus, Group, Spinner} from "@vkontakte/vkui";
+import {Button, CardGrid, ContentCard, Div, Epic, FormStatus, Group, Link, Spinner} from "@vkontakte/vkui";
 import PropTypes from "prop-types";
 import ReactDOM from "react-dom";
-import {Icon28User, Icon28Users} from "@vkontakte/icons";
+import {Icon24CalendarOutline, Icon24ExternalLinkOutline, Icon28User, Icon28Users} from "@vkontakte/icons";
 import {Dates, fetchSchedule, getStatusText} from "../other/other";
 import {apiHref} from "../other/config";
 
@@ -125,8 +125,16 @@ const GetMySchedule = ({date, activePanel}) => {
 }
 
 const renderBlock = (res, elementID) => {
+    const dayNum = parseInt(res[2].replaceAll(elementID, ''), 10)
+    console.log(dayNum, res[2])
     ReactDOM.render(<CardGrid size='l' style={{padding: '0', margin: '0'}}>
-        <RenderSchedule json={res[0]} dayNum={parseInt(res[2].replaceAll(elementID, ''), 10)} err={res[1]}/>
+        <RenderSchedule json={res[0]} dayNum={dayNum} err={res[1]}/>
+        <Link href={res[0][dayNum]['href']} target="_blank" style={{flex: '1'}}>
+            <Button align="center" mode="outline" stretched={true}
+                    after={<Icon24ExternalLinkOutline width={16} height={16} />}
+                    before={<Icon24CalendarOutline width={16} height={16} />}
+            >Проверить</Button>
+        </Link>
     </CardGrid>, document.getElementById(res[2]))
 }
 

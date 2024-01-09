@@ -4,7 +4,12 @@ import {
 	Epic, PanelHeaderContent, PanelHeaderContext, SimpleCell, PullToRefresh,
 } from '@vkontakte/vkui';
 import '@vkontakte/vkui/dist/vkui.css';
-import {Icon24Done, Icon28CalendarOutline, Icon28Menu, Icon28SettingsOutline} from "@vkontakte/icons";
+import {
+	Icon24Done,
+	Icon28CalendarOutline,
+	Icon28InfoOutline,
+	Icon28Menu,
+} from "@vkontakte/icons";
 import {MySch} from "./panels/schedules/my";
 import {GroupSch} from "./panels/schedules/group";
 import {TeacherSch} from "./panels/schedules/teacher";
@@ -37,7 +42,7 @@ const App = () => {
 	Panels.set("mySchedule", {ico: <Icon28CalendarOutline/>, value: 'Мое расписание', element: <MySch/>});
 	Panels.set("groupSchedule", {ico: <Icon28CalendarOutline/>, value: 'Расписание группы', element: <GroupSch/>});
 	Panels.set("teacherSchedule", {ico: <Icon28CalendarOutline/>, value: 'Расписание преподавателя', element: <TeacherSch/>});
-	Panels.set("information", {ico: <Icon28SettingsOutline/>, value: 'Информация', element: <Information/>});
+	Panels.set("information", {ico: <Icon28InfoOutline/>, value: 'Информация', element: <Information/>});
 	const PanelsKeys = Array.from(Panels.keys());
 
 	return (

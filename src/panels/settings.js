@@ -132,7 +132,7 @@ export const Settings = () => {
     const teacherName = "Преподаватель"
     const groupName = "Группа"
 
-    return <Group id='settings-menu' style={{width: '100vw'}}>
+    return <Group id='settings-menu' separator='hide' mode='plain'>
         <CardGrid size="l">
             <FormItem
                 style={{

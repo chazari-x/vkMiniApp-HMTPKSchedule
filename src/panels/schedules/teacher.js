@@ -1,4 +1,4 @@
-import {Button, Calendar, CustomSelect, FormItem, Group, LocaleProvider} from "@vkontakte/vkui";
+import {Button, Calendar, CustomSelect, Epic, FormItem, Group, LocaleProvider, Spinner} from "@vkontakte/vkui";
 import {Icon16CalendarOutline,} from "@vkontakte/icons";
 import React, {useEffect, useState} from "react";
 import {GetTeacherSchedule} from "../../schedule/schedule";
@@ -19,6 +19,16 @@ export const TeacherSch = () => {
 
     const [selected, setSelected] = React.useState(`teacher-schedule${dayNum.toString()}`);
     const [selectedDate, setSelectedDate] = useState(() => date);
+    const [resultStory, setResultStory] = React.useState('load');
+    const change = (date) => {
+        setSelectedDate(date)
+        let dayNum = date.getDay() - 1
+        if (dayNum === -1) {
+            dayNum = 6
+        }
+        setSelected(`teacher-schedule${dayNum.toString()}`)
+        setResultStory("load")
+    }
 
     const [teacher, setTeacher] = React.useState();
     const onChange = (e) => {
@@ -43,6 +53,7 @@ export const TeacherSch = () => {
 
     const [result, setResult] = React.useState(<div></div>);
     useEffect(() => {
+        setResultStory('schedule')
         setResult(<GetTeacherSchedule teacher={teacher} activePanel={selected} date={format(selectedDate, 'DD.MM.YYYY')}/>);
     }, [selectedDate || selected, teacher]);
 
@@ -53,7 +64,7 @@ export const TeacherSch = () => {
                 <Popover action="click" shown={shown} onShownChange={setShown}
                     style={{display: 'flex', justifyContent: 'center', background: 'none'}}
                     content={<LocaleProvider value='ru'>
-                            <Calendar size='m' value={selectedDate} onChange={setSelectedDate} showNeighboringMonth={true}/>
+                            <Calendar size='m' value={selectedDate} onChange={change} showNeighboringMonth={true}/>
                         </LocaleProvider>}>
                     <Button appearance='accent-invariable' mode='outline' style={{
                         margin: '0 var(--vkui--size_base_padding_horizontal--regular) var(--vkui--size_base_padding_vertical--regular)',
@@ -71,8 +82,15 @@ export const TeacherSch = () => {
                     />
                 </FormItem>
             </div>
-            <Scrollable setSelected={setSelected} selectedDate={selectedDate} setSelectedDate={setSelectedDate} selected={selected} type='teacher-schedule'/>
-            {result}
+            <Scrollable setSelected={setSelected} selectedDate={selectedDate} setSelectedDate={change} selected={selected} type='teacher-schedule'/>
+            <Epic activeStory={resultStory}>
+                <Group id="schedule" separator="hide" mode='plain'>
+                    {result}
+                </Group>
+                <Group id="load" separator="hide" mode='plain'>
+                    <Spinner size="large" style={{margin: '10px 0'}}/>
+                </Group>
+            </Epic>
             {snackbar}
         </Group>
     )
