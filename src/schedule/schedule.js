@@ -130,7 +130,7 @@ const renderBlock = (res, elementID) => {
     ReactDOM.render(<CardGrid size='l' style={{padding: '0', margin: '0'}}>
         <RenderSchedule json={res[0]} dayNum={dayNum} err={res[1]}/>
         <Link href={res[0][dayNum]['href']} target="_blank" style={{flex: '1'}}>
-            <Button align="center" mode="outline" stretched={true}
+            <Button appearance='accent-invariable' align="center" mode="outline" stretched={true}
                     after={<Icon24ExternalLinkOutline width={16} height={16} />}
                     before={<Icon24CalendarOutline width={16} height={16} />}
             >Проверить</Button>
