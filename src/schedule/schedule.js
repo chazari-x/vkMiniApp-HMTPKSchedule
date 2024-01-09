@@ -126,7 +126,6 @@ const GetMySchedule = ({date, activePanel}) => {
 
 const renderBlock = (res, elementID) => {
     const dayNum = parseInt(res[2].replaceAll(elementID, ''), 10)
-    console.log(dayNum, res[2])
     ReactDOM.render(<CardGrid size='l' style={{padding: '0', margin: '0'}}>
         <RenderSchedule json={res[0]} dayNum={dayNum} err={res[1]}/>
         <Link href={res[0][dayNum]['href']} target="_blank" style={{flex: '1'}}>
