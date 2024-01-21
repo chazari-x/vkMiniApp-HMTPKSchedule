@@ -148,9 +148,12 @@ const Scrollable = ({selectedDate, setSelected, setSelectedDate, selected, type}
                                 ? {display: 'flex', flexDirection: 'column', fontWeight: '200'}
                                 : {color: 'var(--vkui--color_text_primary)', display: 'flex', flexDirection: 'column'}}>
                                 <div>{d.toLocaleDateString("ru", {weekday: "short"}).toUpperCase()}</div>
-                                <div>{d.getDate()}</div>
-                                {format(d, 'DD.MM.YYYY') === format(new Date(), 'DD.MM.YYYY')
-                                    ? <Badge mode="prominent" style={{position: 'absolute', right: '0', bottom: '0'}}/> : null}
+                                <div style={format(d, 'DD.MM.YYYY') === format(new Date(), 'DD.MM.YYYY')
+                                    ? {borderTop: "solid 1px #ffffffff"}
+                                    : {borderTop: "solid 1px #ff000000"}}
+                                >
+                                    {d.getDate()}
+                                </div>
                             </div>
                         </TabsItem>
                     })}

@@ -6,6 +6,11 @@ import {Icon24CalendarOutline, Icon24ExternalLinkOutline, Icon28User, Icon28User
 import {Dates, fetchSchedule, getStatusText} from "../other/other";
 import {apiHref} from "../other/config";
 
+// const grpc = require('grpc');
+// const schedule = require('./pb/schedule_pb'); // Замените на путь к вашему сгенерированному файлу
+// const schedule_grpc = require('./pb/schedule_grpc_pb');
+// const client = new schedule_grpc.GreeterClient('chazari.ru:50051', grpc.credentials.createInsecure());
+
 async function fetchMoviesJSON(href, activePanel)  {
     const response = await fetch(apiHref+href, {method: "POST"});
     switch (response.status) {
@@ -38,6 +43,19 @@ const GetGroupSchedule = ({group, date, activePanel}) => {
         renderBlock([null, err, activePanel], "group-schedule")
     })
 
+    // const request = new schedule.GetScheduleByGroupRequest();
+    // request.setDate(date);
+    // request.setGroup(group);
+    //
+    // client.getScheduleByGroup(request, (error, response) => {
+    //     if (!error) {
+    //         renderBlock([JSON.parse(response.getMessage()), null, activePanel], "group-schedule")
+    //     } else {
+    //         console.error('Error:', error);
+    //         renderBlock([null, error.details, activePanel], "group-schedule")
+    //     }
+    // });
+
     return <Epic activeStory={activePanel}>
         {Dates.map(item => {
             return <Group id={`group-schedule`+item.id.toString()} key={`group-schedule`+item.id.toString()} separator='hide' mode='plain'>
@@ -65,6 +83,19 @@ const GetTeacherSchedule = ({teacher, date, activePanel}) => {
         href += `&date=${date}`
     }
 
+    // const request = new schedule.GetScheduleByTeacherRequest();
+    // request.setDate(date);
+    // request.setTeacher(teacher);
+    //
+    // client.getScheduleByTeacher(request, (error, response) => {
+    //     if (!error) {
+    //         renderBlock([JSON.parse(response.getMessage()), null, activePanel], "teacher-schedule")
+    //     } else {
+    //         console.error('Error:', error);
+    //         renderBlock([null, error.details, activePanel], "teacher-schedule")
+    //     }
+    // });
+
     fetchMoviesJSON(href, activePanel).then(res => {
         renderBlock(res, "teacher-schedule")
     }).catch(err => {
@@ -86,25 +117,37 @@ const GetMySchedule = ({date, activePanel}) => {
             throw "За Вами не закреплены ни группа ни преподаватель. Измените настройки в меню \"Настройки\"."
         }
 
-        let my = ""
-        if (window['groupOrTeacher']['group'] !== "") {
-            my = `group=${window['groupOrTeacher']['group']}`
-        } else if (window['groupOrTeacher']['teacher'] !== "") {
-            my = `teacher=${window['groupOrTeacher']['teacher']}`
-        } else {
-            throw "За Вами не закреплены ни группа ни преподаватель. Измените настройки в меню \"Настройки\"."
-        }
+        throw "Технические неполадки"
 
-        let href = '/get?key=VK&' + my;
-        if (date != null) {
-            href += `&date=${date}`
-        }
-
-        fetchMoviesJSON(href, activePanel).then(res => {
-            renderBlock(res, 'my-schedule')
-        }).catch(err => {
-            renderBlock([null, err, activePanel], "my-schedule")
-        })
+        // if (window['groupOrTeacher']['group'] !== "") {
+        //     const request = new schedule.GetScheduleByGroupRequest();
+        //     request.setDate(date);
+        //     request.setGroup(window['groupOrTeacher']['group']);
+        //
+        //     client.getScheduleByGroup(request, (error, response) => {
+        //         if (!error) {
+        //             renderBlock([JSON.parse(response.getMessage()), null, activePanel], "my-schedule")
+        //         } else {
+        //             console.error('Error:', error);
+        //             renderBlock([null, error.details, activePanel], "my-schedule")
+        //         }
+        //     });
+        // } else if (window['groupOrTeacher']['teacher'] !== "") {
+        //     const request = new schedule.GetScheduleByTeacherRequest();
+        //     request.setDate(date);
+        //     request.setTeacher(window['groupOrTeacher']['teacher']);
+        //
+        //     client.getScheduleByTeacher(request, (error, response) => {
+        //         if (!error) {
+        //             renderBlock([JSON.parse(response.getMessage()), null, activePanel], "my-schedule")
+        //         } else {
+        //             console.error('Error:', error);
+        //             renderBlock([null, error.details, activePanel], "my-schedule")
+        //         }
+        //     });
+        // } else {
+        //     throw "За Вами не закреплены ни группа ни преподаватель. Измените настройки в меню \"Настройки\"."
+        // }
     }).catch(err => {
         ReactDOM.render(<FormStatus mode='error' header='Произошла ошибка' style={{
             margin: '2px 4px', padding: '5px', justifyContent: 'center', alignItems: 'center', flex: '1'
@@ -128,7 +171,11 @@ const renderBlock = (res, elementID) => {
     const dayNum = parseInt(res[2].replaceAll(elementID, ''), 10)
     ReactDOM.render(<CardGrid size='l' style={{padding: '0', margin: '0'}}>
         <RenderSchedule json={res[0]} dayNum={dayNum} err={res[1]}/>
-        <Link href={res[0][dayNum]['href']} target="_blank" style={{flex: '1'}}>
+        <Link href={res[0][dayNum]['href']} target="_blank"
+              style={{
+                  flex: '1',
+                  margin: '0 var(--vkui--size_base_padding_horizontal--regular) var(--vkui--size_base_padding_vertical--regular)'
+        }}>
             <Button appearance='accent-invariable' align="center" mode="outline" stretched={true}
                     after={<Icon24ExternalLinkOutline width={16} height={16} />}
                     before={<Icon24CalendarOutline width={16} height={16} />}

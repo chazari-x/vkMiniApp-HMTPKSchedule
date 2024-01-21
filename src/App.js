@@ -1,7 +1,7 @@
 import React from 'react';
 import {
 	AdaptivityProvider, AppRoot, ConfigProvider, SplitLayout, SplitCol, usePlatform, Platform, PanelHeader, Group,
-	Epic, PanelHeaderContent, PanelHeaderContext, SimpleCell, PullToRefresh,
+	Epic, PanelHeaderContent, PanelHeaderContext, SimpleCell, PullToRefresh, Panel,
 } from '@vkontakte/vkui';
 import '@vkontakte/vkui/dist/vkui.css';
 import {
@@ -53,7 +53,7 @@ const App = () => {
 						<SplitCol width="100%" maxWidth="560px" stretchedOnMobile>
 							<PullToRefresh onRefresh={onRefresh} isFetching={fetching} style={{height: '100%'}}>
 								<PanelHeader before={<Icon28Menu onClick={toggleContext} style={{marginLeft: '10px'}}/>}
-											 separator={false} visor={false}
+											 separator={false}
 								>
 									<PanelHeaderContent>
 										{Panels.has(mode) ? Panels.get(mode).value : 'ХМТПК Расписание'}

@@ -59,27 +59,26 @@ export const TeacherSch = () => {
 
     const [shown, setShown] = React.useState(false);
     return (
-        <Group separator="hide" mode='plain' style={{paddingTop: 'var(--vkui--size_panel_header_height--regular)'}}>
-            <div style={{display: 'flex', flexDirection: 'column'}}>
+        <Group separator="hide" mode='plain'>
+            <div style={{display: 'flex', flexDirection: 'row', flexWrap: 'nowrap', alignItems: 'center', justifyContent: 'space-between'}}>
                 <Popover action="click" shown={shown} onShownChange={setShown}
                     style={{display: 'flex', justifyContent: 'center', background: 'none'}}
                     content={<LocaleProvider value='ru'>
-                            <Calendar size='m' value={selectedDate} onChange={change} showNeighboringMonth={true}/>
+                            <Calendar size='m' value={selectedDate} onChange={change} disablePickers={true} showNeighboringMonth={true}/>
                         </LocaleProvider>}>
                     <Button appearance='accent-invariable' mode='outline' style={{
-                        margin: '0 var(--vkui--size_base_padding_horizontal--regular) var(--vkui--size_base_padding_vertical--regular)',
+                        margin: '0 var(--vkui--size_base_padding_horizontal--regular)',
                         width: 'max-content'
                     }} before={<Icon16CalendarOutline/>}>
                         {`${capitalizeFirstLetter(selectedDate.toLocaleDateString('ru', 
-                            {month: 'long', year: 'numeric'}
+                            {month: 'short', year: '2-digit'}
                         ))}`}
                     </Button>
                 </Popover>
-                <FormItem style={{padding: '0 var(--vkui--size_base_padding_horizontal--regular)'}}>
-                    <CustomSelect placeholder="Выберите преподавателя" searchable options={options} selectType='default'
-                        onChange={onChange} value={teacher} onOpen={options.length === 0 && fetchOptions} fetching={fetching}
-                        style={{width: '100%'}}
-                    />
+                <FormItem style={{padding: '0 var(--vkui--size_base_padding_horizontal--regular) 0 0', flex: '1'}}>
+                    <CustomSelect placeholder="Преподаватель" searchable options={options} selectType='default'
+                                  onChange={onChange} value={teacher} onOpen={options.length === 0 && fetchOptions}
+                                  fetching={fetching} style={{width: '100%'}}/>
                 </FormItem>
             </div>
             <Scrollable setSelected={setSelected} selectedDate={selectedDate} setSelectedDate={change} selected={selected} type='teacher-schedule'/>

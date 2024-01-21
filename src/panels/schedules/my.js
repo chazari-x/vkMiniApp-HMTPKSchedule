@@ -3,9 +3,9 @@ import {
     Calendar,
     Epic,
     Group,
-    LocaleProvider, Spinner,
+    LocaleProvider, PanelHeader, PanelHeaderContent, Spinner,
 } from "@vkontakte/vkui";
-import {Icon16CalendarOutline, Icon16CancelCircleOutline, Icon16GearOutline} from "@vkontakte/icons";
+import {Icon16CalendarOutline, Icon16CancelCircleOutline, Icon16GearOutline, Icon28Menu} from "@vkontakte/icons";
 import React, {useEffect, useState} from "react";
 import "../../schedule/schedule";
 import {GetMySchedule} from "../../schedule/schedule";
@@ -43,20 +43,21 @@ export const MySch = () => {
     const [activeStory, setActiveStory] = React.useState('main');
     const [calendar, setCalendar] = React.useState(false)
     return (
-        <Group separator="hide" mode='plain' style={{paddingTop: 'var(--vkui--size_panel_header_height--regular)'}}>
+        <Group separator="hide" mode='plain'>
             <Epic activeStory={activeStory}>
                 <Group id="main" separator="hide" mode='plain'>
                     <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
-                        <Popover action="click" shown={calendar} onShownChange={setCalendar} style={{display: 'flex', justifyContent: 'center', background: 'none'}}
+                        <Popover action="click" shown={calendar} onShownChange={setCalendar}
+                                 style={{display: 'flex', justifyContent: 'center', background: 'none'}}
                                  content={<LocaleProvider value='ru'>
-                                     <Calendar size='m' value={selectedDate} onChange={change} showNeighboringMonth={true}/>
+                                     <Calendar size='m' value={selectedDate} onChange={change} disablePickers={true} showNeighboringMonth={true}/>
                                  </LocaleProvider>}>
                             <Button appearance='accent-invariable' mode='outline' style={{
                                 margin: '0 var(--vkui--size_base_padding_horizontal--regular) var(--vkui--size_base_padding_vertical--regular)',
                                 width: 'max-content'
                             }} before={<Icon16CalendarOutline/>}>
                                 {`${capitalizeFirstLetter(selectedDate.toLocaleDateString('ru',
-                                    {month: 'long', year: 'numeric'}
+                                    {month: 'short', year: '2-digit'}
                                 ))}`}
                             </Button>
                         </Popover>
@@ -82,15 +83,14 @@ export const MySch = () => {
                         <Popover action="click" shown={calendar} onShownChange={setCalendar}
                                  style={{display: 'flex', justifyContent: 'center', background: 'none'}}
                                  content={<LocaleProvider value='ru'>
-                                     <Calendar size='m' value={selectedDate} onChange={change}
-                                               showNeighboringMonth={true}/>
+                                     <Calendar size='m' value={selectedDate} onChange={change} disablePickers={true} showNeighboringMonth={true}/>
                                  </LocaleProvider>}>
                             <Button appearance='accent-invariable' mode='outline' style={{
                                 margin: '0 var(--vkui--size_base_padding_horizontal--regular) var(--vkui--size_base_padding_vertical--regular)',
                                 width: 'max-content'
                             }} before={<Icon16CalendarOutline/>}>
                                 {`${capitalizeFirstLetter(selectedDate.toLocaleDateString('ru',
-                                    {month: 'long', year: 'numeric'}
+                                    {month: 'short', year: '2-digit'}
                                 ))}`}
                             </Button>
                         </Popover>
