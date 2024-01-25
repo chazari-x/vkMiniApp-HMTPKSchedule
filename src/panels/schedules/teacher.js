@@ -6,7 +6,7 @@ import bridge from "@vkontakte/vk-bridge";
 import {capitalizeFirstLetter, openAnyError, Scrollable} from "../../other/other";
 import {format} from "@vkontakte/vkui/dist/lib/date";
 import {Popover} from "@vkontakte/vkui/dist/components/Popover/Popover";
-import {token} from "../../other/config";
+import config from "../../other/config.json";
 
 export const TeacherSch = () => {
     const [snackbar, setSnackbar] = React.useState(null);
@@ -41,7 +41,7 @@ export const TeacherSch = () => {
         setFetching(true);
         bridge.send(
             "VKWebAppCallAPIMethod",
-            {"method": "execute.getTeachers", "params": {"v": "5.154", "access_token": token}}
+            {"method": "execute.getTeachers", "params": {"v": "5.154", "access_token": config.token}}
         ).then((data) => {
             setOptions(data.response);
             setFetching(false);

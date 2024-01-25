@@ -2,9 +2,9 @@ import {CardGrid, CustomSelect, Epic, FormItem, FormStatus, Group, Snackbar} fro
 import React, {useEffect} from "react";
 import bridge from "@vkontakte/vk-bridge";
 import ReactDOM from "react-dom";
-import {fetchSchedule} from "../other/other";
+import {fetchGroupOrTeacher} from "../other/other";
 import {Icon28CheckCircleOutline, Icon28ErrorCircleOutline} from "@vkontakte/icons";
-import {token} from "../other/config";
+import config from "../other/config.json";
 
 export const Settings = () => {
     const [snackbar, setSnackbar] = React.useState(null);
@@ -32,7 +32,7 @@ export const Settings = () => {
                     "method": "storage.set",
                     "params": {
                         "v": "5.154",
-                        "access_token": token,
+                        "access_token": config.token,
                         "key": "schedule",
                         "user_id": window['userID'],
                         "value": window['groupOrTeacher']
@@ -66,7 +66,7 @@ export const Settings = () => {
             setGroupFetching(true);
             bridge.send(
                 "VKWebAppCallAPIMethod",
-                {"method": "execute.getGroups", "params": {"v": "5.154", "access_token": token}}
+                {"method": "execute.getGroups", "params": {"v": "5.154", "access_token": config.token}}
             ).then((data) => {
                 setGroupOptions(data.response);
                 setGroupFetching(false);
@@ -93,7 +93,7 @@ export const Settings = () => {
             setTeacherFetching(true);
             bridge.send(
                 "VKWebAppCallAPIMethod",
-                {"method": "execute.getTeachers", "params": {"v": "5.154", "access_token": token}}
+                {"method": "execute.getTeachers", "params": {"v": "5.154", "access_token": config.token}}
             ).then((data) => {
                 setTeacherOptions(data.response);
                 setTeacherFetching(false);
@@ -108,7 +108,7 @@ export const Settings = () => {
     const onMenuChange = (e) => {setMenu(e.target.value)}
 
     useEffect(() => {
-        fetchSchedule().then(_ => {
+        fetchGroupOrTeacher().then(_ => {
             if (window['groupOrTeacher'] !== null) {
                 if (window['groupOrTeacher']['group'] !== "") {
                     setGroup(window['groupOrTeacher']['group'])

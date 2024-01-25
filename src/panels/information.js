@@ -2,7 +2,7 @@ import React from 'react';
 import {Group, Paragraph, Link} from '@vkontakte/vkui';
 import "@vkontakte/icons";
 import {Icon24ExternalLinkOutline} from "@vkontakte/icons";
-import {groupHref, groupName} from "../other/config";
+import config from "../other/config.json";
 
 export const Information = () => {
 	return (
@@ -35,8 +35,8 @@ export const Information = () => {
 				</div>
 				<div style={{marginBottom: '10px', textAlign: "justify"}}>
 					<Paragraph>
-						<Link href={groupHref} target="_blank">
-							Разработчик: {groupName}
+						<Link href={config.group.href} target="_blank">
+							Разработчик: {config.group.name}
 							<Icon24ExternalLinkOutline width={16} height={16} />
 						</Link> принимает жалобы и предложения.
 					</Paragraph>

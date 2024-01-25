@@ -1,7 +1,7 @@
 import bridge from "@vkontakte/vk-bridge";
 import React from "react";
-import {token} from "./config";
-import {Badge, Group, HorizontalScroll, Snackbar, Tabs, TabsItem} from "@vkontakte/vkui";
+import config from "./config.json";
+import {Group, HorizontalScroll, Snackbar, Tabs, TabsItem} from "@vkontakte/vkui";
 import {Icon28ErrorCircleOutline} from "@vkontakte/icons";
 import {format} from "@vkontakte/vkui/dist/lib/date";
 
@@ -67,7 +67,7 @@ const getStatusText = (statusCode) => {
     }
 }
 
-async function fetchSchedule() {
+async function fetchGroupOrTeacher() {
     if (window['userID'] === 0 || window['userID'] === undefined || window['userID'] === null) {
         window['userID'] = (await bridge.send('VKWebAppGetUserInfo')).id
     }
@@ -82,7 +82,7 @@ async function fetchSchedule() {
             "method": "storage.get",
             "params": {
                 "v": "5.154",
-                "access_token": token,
+                "access_token": config.token,
                 "key": "schedule",
                 "user_id": window['userID']
             }
@@ -163,4 +163,4 @@ const Scrollable = ({selectedDate, setSelected, setSelectedDate, selected, type}
     );
 };
 
-export {capitalizeFirstLetter, getStatusText, fetchSchedule, openAnyError, Dates, Scrollable};
+export {capitalizeFirstLetter, getStatusText, fetchGroupOrTeacher, openAnyError, Dates, Scrollable};

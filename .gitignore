@@ -1,4 +1,4 @@
-src/other/config.js
+src/other/config.json
 node_modules
 .idea
 *.zip

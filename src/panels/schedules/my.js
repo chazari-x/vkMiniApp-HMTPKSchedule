@@ -3,7 +3,7 @@ import {
     Calendar,
     Epic,
     Group,
-    LocaleProvider, PanelHeader, PanelHeaderContent, Spinner,
+    LocaleProvider, Spinner,
 } from "@vkontakte/vkui";
 import {Icon16CalendarOutline, Icon16CancelCircleOutline, Icon16GearOutline, Icon28Menu} from "@vkontakte/icons";
 import React, {useEffect, useState} from "react";

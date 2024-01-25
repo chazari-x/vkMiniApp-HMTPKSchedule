@@ -1,12 +1,18 @@
 {
     "name": "mini-app",
     "version": "0.0.0",
+    "eslintConfig": {
+        "env": {
+            "browser": true,
+            "node": true
+        }
+    },
     "scripts": {
         "start": "cross-env PORT=10888 HTTPS=true react-scripts start",
         "build": "react-scripts build",
         "predeploy": "npm run build",
         "deploy": "vk-miniapps-deploy",
-        "tunnel": "vk-tunnel --insecure=1 --http-protocol=https --ws-protocol=wss --host=0.0.0.0 --port=10888 app_id=8174360 endpoints=[web]"
+        "tunnel": "vk-tunnel --insecure=1 --http-protocol=https --ws-protocol=wss --host=0.0.0.0 --port=10888"
     },
     "engines": {
         "node": ">=12.0.0"
@@ -14,25 +20,56 @@
     "keywords": [],
     "license": "MIT",
     "dependencies": {
+        "@madaket/api-token-generator": "^1.1.0",
         "@vkontakte/icons": "2.7.0",
         "@vkontakte/vk-bridge": "latest",
         "@vkontakte/vk-miniapps-deploy": "^0.0.25",
+        "@vkontakte/vk-tunnel": "^0.1.4",
         "@vkontakte/vkui": "5.1.0",
         "@vkontakte/vkui-connect": "^1.5.4",
+        "assert": "^2.1.0",
+        "aws-sdk": "^2.1540.0",
         "axios": "^1.6.1",
         "babel-eslint": "^10.1.0",
+        "browserify-zlib": "^0.2.0",
+        "buffer": "^6.0.3",
+        "child_process": "^1.0.2",
+        "constants-browserify": "^1.0.0",
+        "crypto": "^1.0.1",
+        "crypto-browserify": "^3.12.0",
         "eruda": "^2.4.1",
         "eruda-code": "^2.0.0",
         "eruda-dom": "^2.0.0",
+        "fs": "^0.0.1-security",
+        "google-protobuf": "^3.21.2",
+        "grpc": "^1.24.11",
+        "html-loader": "^5.0.0",
+        "https-browserify": "^1.0.0",
+        "jsonwebtoken": "^9.0.2",
+        "mock-aws-s3": "^4.0.2",
+        "net": "^1.0.2",
+        "nock": "^13.5.0",
+        "os": "^0.1.2",
+        "os-browserify": "^0.3.0",
+        "path": "^0.12.7",
+        "path-browserify": "^1.0.1",
         "prop-types": "^15.7.2",
         "react": "^17.0.2",
         "react-dom": "^17.0.2",
-        "redis": "^4.6.10"
+        "redis": "^4.6.10",
+        "stream": "^0.0.2",
+        "stream-browserify": "^3.0.0",
+        "stream-http": "^3.2.0",
+        "timers-browserify": "^2.0.12",
+        "tls": "^0.0.1",
+        "url": "^0.11.3",
+        "util": "^0.12.5"
     },
     "devDependencies": {
         "cross-env": "^7.0.3",
         "react-hot-loader": "^4.13.0",
-        "react-scripts": "^5.0.1"
+        "react-scripts": "^5.0.1",
+        "@babel/plugin-proposal-private-property-in-object": "7.21.0-placeholder-for-preset-env.2"
     },
     "resolutions": {
         "react-scripts/webpack-dev-server/yargs/yargs-parser": ">=18.1.2"
