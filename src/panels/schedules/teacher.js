@@ -32,7 +32,8 @@ export const TeacherSch = () => {
 
     const [teacher, setTeacher] = React.useState();
     const onChange = (e) => {
-        setTeacher(e.target.value);
+        setTeacher(e.target.value)
+        setResultStory("load")
     };
 
     const [fetching, setFetching] = React.useState(false);
@@ -54,23 +55,23 @@ export const TeacherSch = () => {
     const [result, setResult] = React.useState(<div></div>);
     useEffect(() => {
         setResultStory('schedule')
-        setResult(<GetTeacherSchedule teacher={teacher} activePanel={selected} date={format(selectedDate, 'DD.MM.YYYY')}/>);
+        setResult(<GetTeacherSchedule teacher={teacher} activePanel={selected} date={format(selectedDate, 'DD.MM.YYYY')} week={selectedDate.getWeek()}/>);
     }, [selectedDate || selected, teacher]);
 
     const [shown, setShown] = React.useState(false);
     return (
-        <Group separator="hide" mode='plain'>
+        <div>
             <div style={{display: 'flex', flexDirection: 'row', flexWrap: 'nowrap', alignItems: 'center', justifyContent: 'space-between'}}>
                 <Popover action="click" shown={shown} onShownChange={setShown}
-                    style={{display: 'flex', justifyContent: 'center', background: 'none'}}
-                    content={<LocaleProvider value='ru'>
-                            <Calendar size='m' value={selectedDate} onChange={change} disablePickers={true} showNeighboringMonth={true}/>
-                        </LocaleProvider>}>
+                         style={{display: 'flex', justifyContent: 'center', background: 'none'}}
+                         content={<LocaleProvider value='ru'>
+                             <Calendar size='m' value={selectedDate} onChange={change} disablePickers={true} showNeighboringMonth={true}/>
+                         </LocaleProvider>}>
                     <Button appearance='accent-invariable' mode='outline' style={{
                         margin: '0 var(--vkui--size_base_padding_horizontal--regular)',
                         width: 'max-content'
                     }} before={<Icon16CalendarOutline/>}>
-                        {`${capitalizeFirstLetter(selectedDate.toLocaleDateString('ru', 
+                        {`${capitalizeFirstLetter(selectedDate.toLocaleDateString('ru',
                             {month: 'short', year: '2-digit'}
                         ))}`}
                     </Button>
@@ -91,6 +92,6 @@ export const TeacherSch = () => {
                 </Group>
             </Epic>
             {snackbar}
-        </Group>
+        </div>
     )
 };

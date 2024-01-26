@@ -149,8 +149,8 @@ const Scrollable = ({selectedDate, setSelected, setSelectedDate, selected, type}
                                 : {color: 'var(--vkui--color_text_primary)', display: 'flex', flexDirection: 'column'}}>
                                 <div>{d.toLocaleDateString("ru", {weekday: "short"}).toUpperCase()}</div>
                                 <div style={format(d, 'DD.MM.YYYY') === format(new Date(), 'DD.MM.YYYY')
-                                    ? {borderTop: "solid 1px #ffffffff"}
-                                    : {borderTop: "solid 1px #ff000000"}}
+                                    ? {borderTop: "solid 1px var(--vkui--color_text_primary)"}
+                                    : {borderTop: "solid 1px #00000000"}}
                                 >
                                     {d.getDate()}
                                 </div>
@@ -162,5 +162,10 @@ const Scrollable = ({selectedDate, setSelected, setSelectedDate, selected, type}
         </Group>
     );
 };
+
+Date.prototype.getWeek = function() {
+    const onejan = new Date(this.getFullYear(), 0, 1);
+    return Math.ceil((((this - onejan) / 86400000) + onejan.getDay()-1)/7);
+}
 
 export {capitalizeFirstLetter, getStatusText, fetchGroupOrTeacher, openAnyError, Dates, Scrollable};

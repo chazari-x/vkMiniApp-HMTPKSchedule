@@ -5,7 +5,7 @@ import {
     Group,
     LocaleProvider, Spinner,
 } from "@vkontakte/vkui";
-import {Icon16CalendarOutline, Icon16CancelCircleOutline, Icon16GearOutline, Icon28Menu} from "@vkontakte/icons";
+import {Icon16CalendarOutline, Icon16CancelCircleOutline, Icon16GearOutline} from "@vkontakte/icons";
 import React, {useEffect, useState} from "react";
 import "../../schedule/schedule";
 import {GetMySchedule} from "../../schedule/schedule";
@@ -37,73 +37,71 @@ export const MySch = () => {
     const [result, setResult] = React.useState(<div></div>);
     useEffect(() => {
         setResultStory("schedule")
-        setResult(<GetMySchedule activePanel={selected} date={format(selectedDate, 'DD.MM.YYYY')}/>)
+        setResult(<GetMySchedule activePanel={selected} date={format(selectedDate, 'DD.MM.YYYY')} week={selectedDate.getWeek()}/>)
     }, [selectedDate || selected]);
 
     const [activeStory, setActiveStory] = React.useState('main');
     const [calendar, setCalendar] = React.useState(false)
     return (
-        <Group separator="hide" mode='plain'>
-            <Epic activeStory={activeStory}>
-                <Group id="main" separator="hide" mode='plain'>
-                    <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
-                        <Popover action="click" shown={calendar} onShownChange={setCalendar}
-                                 style={{display: 'flex', justifyContent: 'center', background: 'none'}}
-                                 content={<LocaleProvider value='ru'>
-                                     <Calendar size='m' value={selectedDate} onChange={change} disablePickers={true} showNeighboringMonth={true}/>
-                                 </LocaleProvider>}>
-                            <Button appearance='accent-invariable' mode='outline' style={{
-                                margin: '0 var(--vkui--size_base_padding_horizontal--regular) var(--vkui--size_base_padding_vertical--regular)',
-                                width: 'max-content'
-                            }} before={<Icon16CalendarOutline/>}>
-                                {`${capitalizeFirstLetter(selectedDate.toLocaleDateString('ru',
-                                    {month: 'short', year: '2-digit'}
-                                ))}`}
-                            </Button>
-                        </Popover>
+        <Epic activeStory={activeStory}>
+            <Group id="main" separator="hide" mode='plain'>
+                <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
+                    <Popover action="click" shown={calendar} onShownChange={setCalendar}
+                             style={{display: 'flex', justifyContent: 'center', background: 'none'}}
+                             content={<LocaleProvider value='ru'>
+                                 <Calendar size='m' value={selectedDate} onChange={change} disablePickers={true} showNeighboringMonth={true}/>
+                             </LocaleProvider>}>
                         <Button appearance='accent-invariable' mode='outline' style={{
                             margin: '0 var(--vkui--size_base_padding_horizontal--regular) var(--vkui--size_base_padding_vertical--regular)',
                             width: 'max-content'
-                        }} before={<Icon16GearOutline/>} onClick={() => setActiveStory('settings')}>
-                            Настройки
+                        }} before={<Icon16CalendarOutline/>}>
+                            {`${capitalizeFirstLetter(selectedDate.toLocaleDateString('ru',
+                                {month: 'short', year: '2-digit'}
+                            ))}`}
                         </Button>
-                    </div>
-                    <Scrollable setSelected={setSelected} selectedDate={selectedDate} setSelectedDate={change} selected={selected} type='my-schedule'/>
-                    <Epic activeStory={resultStory}>
-                        <Group id="schedule" separator="hide" mode='plain'>
-                            {result}
-                        </Group>
-                        <Group id="load" separator="hide" mode='plain'>
-                            <Spinner size="large" style={{margin: '10px 0'}}/>
-                        </Group>
-                    </Epic>
-                </Group>
-                <Group id="settings" separator="hide" mode='plain' >
-                    <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
-                        <Popover action="click" shown={calendar} onShownChange={setCalendar}
-                                 style={{display: 'flex', justifyContent: 'center', background: 'none'}}
-                                 content={<LocaleProvider value='ru'>
-                                     <Calendar size='m' value={selectedDate} onChange={change} disablePickers={true} showNeighboringMonth={true}/>
-                                 </LocaleProvider>}>
-                            <Button appearance='accent-invariable' mode='outline' style={{
-                                margin: '0 var(--vkui--size_base_padding_horizontal--regular) var(--vkui--size_base_padding_vertical--regular)',
-                                width: 'max-content'
-                            }} before={<Icon16CalendarOutline/>}>
-                                {`${capitalizeFirstLetter(selectedDate.toLocaleDateString('ru',
-                                    {month: 'short', year: '2-digit'}
-                                ))}`}
-                            </Button>
-                        </Popover>
-                        <Button appearance='negative' mode='outline' style={{
+                    </Popover>
+                    <Button appearance='accent-invariable' mode='outline' style={{
+                        margin: '0 var(--vkui--size_base_padding_horizontal--regular) var(--vkui--size_base_padding_vertical--regular)',
+                        width: 'max-content'
+                    }} before={<Icon16GearOutline/>} onClick={() => setActiveStory('settings')}>
+                        Настройки
+                    </Button>
+                </div>
+                <Scrollable setSelected={setSelected} selectedDate={selectedDate} setSelectedDate={change} selected={selected} type='my-schedule'/>
+                <Epic activeStory={resultStory}>
+                    <Group id="schedule" separator="hide" mode='plain'>
+                        {result}
+                    </Group>
+                    <Group id="load" separator="hide" mode='plain'>
+                        <Spinner size="large" style={{margin: '10px 0'}}/>
+                    </Group>
+                </Epic>
+            </Group>
+            <Group id="settings" separator="hide" mode='plain' >
+                <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
+                    <Popover action="click" shown={calendar} onShownChange={setCalendar}
+                             style={{display: 'flex', justifyContent: 'center', background: 'none'}}
+                             content={<LocaleProvider value='ru'>
+                                 <Calendar size='m' value={selectedDate} onChange={change} disablePickers={true} showNeighboringMonth={true}/>
+                             </LocaleProvider>}>
+                        <Button appearance='accent-invariable' mode='outline' style={{
                             margin: '0 var(--vkui--size_base_padding_horizontal--regular) var(--vkui--size_base_padding_vertical--regular)',
                             width: 'max-content'
-                        }} before={<Icon16CancelCircleOutline/>} onClick={() => setActiveStory('main')}>
-                            Закрыть
+                        }} before={<Icon16CalendarOutline/>}>
+                            {`${capitalizeFirstLetter(selectedDate.toLocaleDateString('ru',
+                                {month: 'short', year: '2-digit'}
+                            ))}`}
                         </Button>
-                    </div>
-                    <Settings/>
-                </Group>
-            </Epic>
-        </Group>
+                    </Popover>
+                    <Button appearance='negative' mode='outline' style={{
+                        margin: '0 var(--vkui--size_base_padding_horizontal--regular) var(--vkui--size_base_padding_vertical--regular)',
+                        width: 'max-content'
+                    }} before={<Icon16CancelCircleOutline/>} onClick={() => setActiveStory('main')}>
+                        Закрыть
+                    </Button>
+                </div>
+                <Settings/>
+            </Group>
+        </Epic>
     )
 };

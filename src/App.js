@@ -1,7 +1,7 @@
 import React from 'react';
 import {
 	AdaptivityProvider, AppRoot, ConfigProvider, SplitLayout, SplitCol, usePlatform, Platform, PanelHeader, Group,
-	Epic, PanelHeaderContent, PanelHeaderContext, SimpleCell, PullToRefresh, Panel,
+	Epic, PanelHeaderContext, SimpleCell, PullToRefresh,
 } from '@vkontakte/vkui';
 import '@vkontakte/vkui/dist/vkui.css';
 import {
@@ -55,9 +55,7 @@ const App = () => {
 								<PanelHeader before={<Icon28Menu onClick={toggleContext} style={{marginLeft: '10px'}}/>}
 											 separator={false}
 								>
-									<PanelHeaderContent>
-										{Panels.has(mode) ? Panels.get(mode).value : 'ХМТПК Расписание'}
-									</PanelHeaderContent>
+									{Panels.has(mode) ? Panels.get(mode).value : 'ХМТПК Расписание'}
 								</PanelHeader>
 								<PanelHeaderContext opened={contextOpened} onClose={toggleContext}>
 									{PanelsKeys.map((key) => (
@@ -69,11 +67,18 @@ const App = () => {
 										>{Panels.get(key).value}</SimpleCell>
 									))}
 								</PanelHeaderContext>
-								<Epic activeStory={mode} style={{marginTop: '2.5px', height: '100%'}}>
+								<Epic activeStory={mode} style={{height: '100%'}}>
 									{PanelsKeys.map(key => {
 										return (
-											<Group separator='hide' key={key} id={key} hidden={!(mode===key)}>
-												{Panels.get(key).element}
+											<Group separator='hide' key={key} id={key} hidden={!(mode===key)} style={{
+												padding: 'calc(var(--vkui--size_base_padding_vertical--regular)/3) 0'
+											}}>
+												<Group separator="hide" mode='plain' style={{
+													padding: 'var(--vkui--size_base_padding_vertical--regular) 0',
+													backgroundColor: 'var(--vkui--color_background_content)'
+												}}>
+													{Panels.get(key).element}
+												</Group>
 											</Group>
 										)
 									})}

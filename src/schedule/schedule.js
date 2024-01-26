@@ -3,7 +3,7 @@ import {Button, CardGrid, ContentCard, Div, Epic, FormStatus, Group, Link, Spinn
 import PropTypes from "prop-types";
 import ReactDOM from "react-dom";
 import {Icon24CalendarOutline, Icon24ExternalLinkOutline, Icon28User, Icon28Users} from "@vkontakte/icons";
-import {Dates, fetchGroupOrTeacher, getStatusText, openAnyError} from "../other/other";
+import {Dates, fetchGroupOrTeacher, getStatusText} from "../other/other";
 import config from "../other/config.json";
 
 const crypto = require('crypto-browserify');
@@ -15,15 +15,22 @@ function rsaEncrypt(data, publicKey) {
         padding: crypto.constants.RSA_PKCS1_PADDING
     }, data);
 }
+async function fetchSchedule(href, activePanel, week, type)  {
+    if (window["result"] !== undefined) {
+        if (window["result"]["week"] !== undefined
+            && window["result"]["type"] !== undefined
+            && window["result"]["time"] !== undefined) {
+            if (window["result"]["week"] === week
+                && window["result"]["type"] === type) {
+                const now = Math.floor(Date.now() / 1000)
+                if (now-window["result"]["time"] < 60*3) {
+                    return [window["result"]["schedule"], null, activePanel]
+                }
+            }
+        }
+    }
 
-async function getToken (){
-    return rsaEncrypt(Buffer.from(config.api.secretKey+Math.floor(Date.now() / 1000)), config.api.publicKey).toString('hex')
-}
-
-async function fetchSchedule(href, activePanel)  {
-    const token = await getToken().catch(err => {
-        console.error(err)
-    })
+    const token = rsaEncrypt(Buffer.from(config.api.secretKey+Math.floor(Date.now() / 1000)), config.api.publicKey).toString('hex')
 
     if (token !== undefined) {
         window['apiToken'] = `Bearer ${String(token)}`
@@ -36,16 +43,27 @@ async function fetchSchedule(href, activePanel)  {
     const response = await fetch(config.api.href+href, {
         method: "POST",
         body: window['apiToken'],
-    }).catch(err => {
-            console.error(err)
-    });
+    })
+
     switch (response.status) {
-        case 200: return [await response.json(), null, activePanel]
+        case 200:
+            window["result"] = {
+                "schedule": await response.json(),
+                "time": Math.floor(Date.now() / 1000),
+                "week": week,
+                "type": type
+            }
+
+            return [window["result"]["schedule"], null, activePanel]
+        case 204:
+            return [null, "Ошибка выполнения запроса к ХМТПК API: превышено время ожидания ответа от https://hmtpk.ru", activePanel]
+        case 401:
+            return [null, "Ошибка выполнения запроса к ХМТПК API. Повторите попытку, если проблема не решится, сообщите разработчикам.", activePanel]
         default: return [null, getStatusText(response.status), activePanel]
     }
 }
 
-const GetGroupSchedule = ({group, date, activePanel}) => {
+const GetGroupSchedule = ({group, date, activePanel, week}) => {
     if (group === '' || group === undefined) {
         return <Epic activeStory={activePanel}>
             {Dates.map(item => {
@@ -58,16 +76,16 @@ const GetGroupSchedule = ({group, date, activePanel}) => {
         </Epic>
     }
 
-    let href = '/get?key=VK&group=' + group;
+    let href = '/get?key=VK&group=' + group
+    const type = '&group=' + group
     if (date != null) {
         href += `&date=${date}`
     }
 
-    fetchSchedule(href, activePanel).then(res => {
+    fetchSchedule(href, activePanel, week, type).then(res => {
         renderBlock(res, "group-schedule")
     }).catch(err => {
-        console.error(err)
-        renderBlock([null, "Ошибка выполнения запроса к ХМТПК API", activePanel], "group-schedule")
+        renderBlock([null, err, activePanel], "group-schedule")
     })
 
     return <Epic activeStory={activePanel}>
@@ -79,7 +97,7 @@ const GetGroupSchedule = ({group, date, activePanel}) => {
     </Epic>
 }
 
-const GetTeacherSchedule = ({teacher, date, activePanel}) => {
+const GetTeacherSchedule = ({teacher, date, activePanel, week}) => {
     if (teacher === '' || teacher === undefined) {
         return <Epic activeStory={activePanel}>
             {Dates.map(item => {
@@ -92,16 +110,16 @@ const GetTeacherSchedule = ({teacher, date, activePanel}) => {
         </Epic>
     }
 
-    let href = '/get?key=VK&teacher=' + teacher;
+    let href = '/get?key=VK&teacher=' + teacher
+    const type = '&teacher=' + teacher
     if (date != null) {
         href += `&date=${date}`
     }
 
-    fetchSchedule(href, activePanel).then(res => {
+    fetchSchedule(href, activePanel, week, type).then(res => {
         renderBlock(res, "teacher-schedule")
     }).catch(err => {
-        console.error(err)
-        renderBlock([null, "Ошибка выполнения запроса к ХМТПК API", activePanel], "teacher-schedule")
+        renderBlock([null, err, activePanel], "teacher-schedule")
     })
 
     return <Epic activeStory={activePanel}>
@@ -113,17 +131,20 @@ const GetTeacherSchedule = ({teacher, date, activePanel}) => {
     </Epic>
 }
 
-const GetMySchedule = ({date, activePanel}) => {
+const GetMySchedule = ({date, activePanel, week}) => {
     fetchGroupOrTeacher().then(_ => {
         if (window['groupOrTeacher'] === null) {
             throw "За Вами не закреплены ни группа ни преподаватель. Измените настройки в меню \"Настройки\"."
         }
 
-        let href = '/get?key=VK';
+        let href = '/get?key=VK'
+        let type = ''
         if (window['groupOrTeacher']['group'] !== "") {
-            href += '&group=' + window['groupOrTeacher']['group'];
+            type = '&group=' + window['groupOrTeacher']['group']
+            href += '&group=' + window['groupOrTeacher']['group']
         } else if (window['groupOrTeacher']['teacher'] !== "") {
-            href += '&teacher=' + window['groupOrTeacher']['teacher'];
+            type = '&teacher=' + window['groupOrTeacher']['teacher']
+            href += '&teacher=' + window['groupOrTeacher']['teacher']
         } else {
             throw "За Вами не закреплены ни группа ни преподаватель. Измените настройки в меню \"Настройки\"."
         }
@@ -132,11 +153,10 @@ const GetMySchedule = ({date, activePanel}) => {
             href += `&date=${date}`
         }
 
-        fetchSchedule(href, activePanel).then(res => {
+        fetchSchedule(href, activePanel, week, type).then(res => {
             renderBlock(res, "my-schedule")
         }).catch(err => {
-            console.error(err)
-            renderBlock([null, "Ошибка выполнения запроса к ХМТПК API", activePanel], "my-schedule")
+            renderBlock([null, err, activePanel], "my-schedule")
         })
     }).catch(err => {
         ReactDOM.render(<FormStatus mode='error' header='Произошла ошибка' style={{
@@ -165,7 +185,7 @@ const renderBlock = (res, elementID) => {
                 ? <Link
                 href={res[0][dayNum]['href']}
                 target="_blank"
-                style={{flex: '1', margin: '0 var(--vkui--size_base_padding_horizontal--regular) var(--vkui--size_base_padding_vertical--regular)'}}>
+                style={{flex: '1', margin: '0 var(--vkui--size_base_padding_horizontal--regular)'}}>
                     <Button appearance='accent-invariable' align="center" mode="outline" stretched={true}
                             after={<Icon24ExternalLinkOutline width={16} height={16} />}
                             before={<Icon24CalendarOutline width={16} height={16} />}>Проверить</Button>
@@ -239,16 +259,19 @@ const RenderSchedule = ({json, dayNum, err}) => {
 
 GetGroupSchedule.propTypes = {
     group: PropTypes.string.isRequired,
-    week: PropTypes.string
+    date: PropTypes.string.isRequired,
+    week: PropTypes.number.isRequired
 };
 
 GetTeacherSchedule.propTypes = {
     teacher: PropTypes.string.isRequired,
-    week: PropTypes.string
+    date: PropTypes.string.isRequired,
+    week: PropTypes.number.isRequired
 };
 
 GetMySchedule.propTypes = {
-    week: PropTypes.string
+    date: PropTypes.string.isRequired,
+    week: PropTypes.number.isRequired
 };
 
 export {GetGroupSchedule, GetMySchedule, GetTeacherSchedule}
