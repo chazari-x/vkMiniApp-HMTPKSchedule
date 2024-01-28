@@ -252,6 +252,8 @@ const Scrollable = ({selectedDate, setSelected, setSelectedDate, selected, type,
                                 setSelected(`${type}${dayNum.toString()}`)
                                 let d = addDays(selectedDate, -dayNum + i)
                                 return <TabsItem
+                                    id={`tabsItem-${type}${i.toString()}`}
+                                    aria-controls={`tabsItem-${type}${i.toString()}`}
                                     key={`${type}${i.toString()}`}
                                     selected={selected === `${type}${i.toString()}`}
                                     onClick={() => {

@@ -7,7 +7,7 @@ import {
     Spinner,
     Tooltip
 } from "@vkontakte/vkui";
-import {Icon16CalendarOutline, Icon16UserOutline, Icon24Done,} from "@vkontakte/icons";
+import {Icon16CalendarOutline, Icon16CancelCircleOutline, Icon16UserOutline, Icon24Done,} from "@vkontakte/icons";
 import React, {useEffect, useState} from "react";
 import {GetTeacherSchedule} from "../../schedule/schedule";
 import bridge from "@vkontakte/vk-bridge";
@@ -75,11 +75,12 @@ export const TeacherSch = () => {
 
     return (
         <Epic activeStory={activeView} style={{padding: '0'}}>
-            <Group id='groupSelector' separator='hide' mode='plain'>
+            <Group id='teacherSelector' separator='hide' mode='plain'>
                 <div style={{flex: '1', display: 'flex', justifyContent: 'right'}}>
                     <Button appearance='negative' align="center" mode="outline"
                             onClick={() => {setActiveView('main')}}
                             style={{margin: '0 var(--vkui--size_base_padding_horizontal--regular) calc(var(--vkui--size_base_padding_vertical--regular)/2)'}}
+                            before={<Icon16CancelCircleOutline/>}
                     >Закрыть</Button>
                 </div>
                 <Search value={search} onChange={onChange} after={null} />
@@ -127,7 +128,7 @@ export const TeacherSch = () => {
                     </Popover>
                     <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
                         <Button appearance='accent-invariable' mode='outline'
-                                onClick={() => setActiveView('groupSelector')}
+                                onClick={() => setActiveView('teacherSelector')}
                                 style={{
                                     margin: '0 var(--vkui--size_base_padding_horizontal--regular)',
                                     width: 'max-content'

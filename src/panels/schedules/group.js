@@ -13,7 +13,7 @@ import bridge from "@vkontakte/vk-bridge";
 import {capitalizeFirstLetter, openAnyError, Scrollable, update} from "../../other/other";
 import {format} from "@vkontakte/vkui/dist/lib/date";
 import {Popover} from "@vkontakte/vkui/dist/components/Popover/Popover";
-import {Icon16CalendarOutline, Icon20Users3Outline, Icon24Done} from "@vkontakte/icons";
+import {Icon16CalendarOutline, Icon16CancelCircleOutline, Icon20Users3Outline, Icon24Done} from "@vkontakte/icons";
 import config from "../../other/config.json";
 
 export const GroupSch = () => {
@@ -80,6 +80,7 @@ export const GroupSch = () => {
                     <Button appearance='negative' align="center" mode="outline"
                             onClick={() => {setActiveView('main')}}
                             style={{margin: '0 var(--vkui--size_base_padding_horizontal--regular) calc(var(--vkui--size_base_padding_vertical--regular)/2)'}}
+                            before={<Icon16CancelCircleOutline/>}
                     >Закрыть</Button>
                 </div>
                 <Search value={search} onChange={onChange} after={null} />
