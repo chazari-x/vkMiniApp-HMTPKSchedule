@@ -1,8 +1,22 @@
 import React from "react";
-import {Button, CardGrid, ContentCard, Div, Epic, FormStatus, Group, Link, Spinner} from "@vkontakte/vkui";
-import PropTypes from "prop-types";
-import ReactDOM from "react-dom";
-import {Icon24CalendarOutline, Icon24ExternalLinkOutline, Icon28User, Icon28Users} from "@vkontakte/icons";
+import {
+    Button,
+    CardGrid,
+    ContentCard,
+    Div,
+    Epic,
+    FormStatus,
+    Group,
+    Link,
+    Spinner,
+} from "@vkontakte/vkui";
+import ReactDOM from "react-dom/client";
+import {
+    Icon24CalendarOutline,
+    Icon24ExternalLinkOutline,
+    Icon28User,
+    Icon28Users
+} from "@vkontakte/icons";
 import {Dates, fetchGroupOrTeacher, getStatusText} from "../other/other";
 import config from "../other/config.json";
 
@@ -68,8 +82,9 @@ const GetGroupSchedule = ({group, date, activePanel, week}) => {
         return <Epic activeStory={activePanel}>
             {Dates.map(item => {
                 return <Group id={`group-schedule`+item.id.toString()} key={`group-schedule`+item.id.toString()} separator='hide' mode='plain'>
-                    <FormStatus mode='default' header='Произошла ошибка' style={{
-                        margin: '2px 4px', padding: '5px', justifyContent: 'center', alignItems: 'center', flex: '1'
+                    <FormStatus mode='default' style={{
+                        margin: 'var(--vkui--size_base_padding_vertical--regular) var(--vkui--size_base_padding_horizontal--regular)', padding: '0',
+                        justifyContent: 'center', alignItems: 'center', flex: '1'
                     }}>Вы не выбрали группу.</FormStatus>
                 </Group>
             })}
@@ -86,7 +101,7 @@ const GetGroupSchedule = ({group, date, activePanel, week}) => {
         renderBlock(res, "group-schedule")
     }).catch(err => {
         renderBlock([null, err, activePanel], "group-schedule")
-    })
+    }).catch(() => {})
 
     return <Epic activeStory={activePanel}>
         {Dates.map(item => {
@@ -102,8 +117,9 @@ const GetTeacherSchedule = ({teacher, date, activePanel, week}) => {
         return <Epic activeStory={activePanel}>
             {Dates.map(item => {
                 return <Group id={`teacher-schedule`+item.id.toString()} key={`teacher-schedule`+item.id.toString()} separator='hide' mode='plain'>
-                    <FormStatus mode='default' header='Произошла ошибка' style={{
-                        margin: '2px 4px', padding: '5px', justifyContent: 'center', alignItems: 'center', flex: '1'
+                    <FormStatus mode='default' style={{
+                        margin: 'var(--vkui--size_base_padding_vertical--regular) var(--vkui--size_base_padding_horizontal--regular)', padding: '0',
+                        justifyContent: 'center', alignItems: 'center', flex: '1'
                     }}>Вы не выбрали преподавателя.</FormStatus>
                 </Group>
             })}
@@ -120,7 +136,7 @@ const GetTeacherSchedule = ({teacher, date, activePanel, week}) => {
         renderBlock(res, "teacher-schedule")
     }).catch(err => {
         renderBlock([null, err, activePanel], "teacher-schedule")
-    })
+    }).catch(() => {})
 
     return <Epic activeStory={activePanel}>
         {Dates.map(item => {
@@ -157,15 +173,23 @@ const GetMySchedule = ({date, activePanel, week}) => {
             renderBlock(res, "my-schedule")
         }).catch(err => {
             renderBlock([null, err, activePanel], "my-schedule")
-        })
+        }).catch(() => {})
+
     }).catch(err => {
-        ReactDOM.render(<FormStatus mode='error' header='Произошла ошибка' style={{
-            margin: '2px 4px', padding: '5px', justifyContent: 'center', alignItems: 'center', flex: '1'
-        }}>
-            {err === "За Вами не закреплены ни группа ни преподаватель. Измените настройки в меню \"Настройки\"."
-                ? "За Вами не закреплены ни группа ни преподаватель. Измените настройки в меню \"Настройки\"."
-            : "Произошла ошибка при получении Ваше группы." && function () {console.log(err)}}
-        </FormStatus>, document.getElementById(activePanel))
+        let message = "За Вами не закреплены ни группа ни преподаватель. Измените настройки в меню \"Настройки\"."
+        if (message === err) {
+            ReactDOM.createRoot(document.getElementById(activePanel)).render(<FormStatus mode='default' header='' style={{
+                margin: 'var(--vkui--size_base_padding_vertical--regular) var(--vkui--size_base_padding_horizontal--regular)', padding: '0',
+                justifyContent: 'center', alignItems: 'center', flex: '1'
+            }}>{message}</FormStatus>)
+        } else {
+            console.error(err)
+            ReactDOM.createRoot(document.getElementById(activePanel)).render(<FormStatus mode='error' header='Произошла ошибка' style={{
+                margin: 'var(--vkui--size_base_padding_vertical--regular) var(--vkui--size_base_padding_horizontal--regular)', padding: '0',
+                justifyContent: 'center', alignItems: 'center', flex: '1'
+            }}>Произошла ошибка при получении Ваше группы.</FormStatus>)
+        }
+
     })
 
     return <Epic activeStory={activePanel}>
@@ -179,30 +203,33 @@ const GetMySchedule = ({date, activePanel, week}) => {
 
 const renderBlock = (res, elementID) => {
     const dayNum = parseInt(res[2].replaceAll(elementID, ''), 10)
-    ReactDOM.render(<CardGrid size='l' style={{padding: '0', margin: '0'}}>
+    ReactDOM.createRoot(document.getElementById(res[2])).render(<CardGrid size='l' style={{padding: '0', margin: '0'}}>
         <RenderSchedule json={res[0]} dayNum={dayNum} err={res[1]}/>
         {res[1] === null ? (res[0] !== null
                 ? <Link
                 href={res[0][dayNum]['href']}
                 target="_blank"
                 style={{flex: '1', margin: '0 var(--vkui--size_base_padding_horizontal--regular)'}}>
-                    <Button appearance='accent-invariable' align="center" mode="outline" stretched={true}
-                            after={<Icon24ExternalLinkOutline width={16} height={16} />}
-                            before={<Icon24CalendarOutline width={16} height={16} />}>Проверить</Button>
+                <Button appearance='accent-invariable' align="center" mode="outline" stretched={true}
+                        after={<Icon24ExternalLinkOutline width={16} height={16} />}
+                        before={<Icon24CalendarOutline width={16} height={16} />}
+                >Проверить расписание на сайте</Button>
                 </Link> : null) : null}
-    </CardGrid>, document.getElementById(res[2]))
+    </CardGrid>)
 }
 
 const RenderSchedule = ({json, dayNum, err}) => {
     if (err !== null) {
         return <FormStatus mode='error' header='Произошла ошибка' style={{
-            margin: '2px 4px', padding: '5px', justifyContent: 'center', alignItems: 'center', flex: '1'
+            margin: 'var(--vkui--size_base_padding_vertical--regular) var(--vkui--size_base_padding_horizontal--regular)', padding: '0',
+            justifyContent: 'center', alignItems: 'center', flex: '1'
         }}>{err}</FormStatus>
     }
 
     if (json[dayNum]['lesson'] === null) {
         return <CardGrid size='m' key='none' style={{
-            margin: '2px 4px', padding: '5px', justifyContent: 'center', alignItems: 'center', textAlign: 'center', width: '100%'
+            margin: 'var(--vkui--size_base_padding_vertical--regular) var(--vkui--size_base_padding_horizontal--regular)', padding: '0',
+            justifyContent: 'center', alignItems: 'center', textAlign: 'center', width: '100%'
         }}><ContentCard mode='outline-tint' header='Занятий нет' style={{margin: '0', flex: '1', background: 'none'}}/></CardGrid>
     }
 
@@ -256,22 +283,5 @@ const RenderSchedule = ({json, dayNum, err}) => {
         )
     })
 }
-
-GetGroupSchedule.propTypes = {
-    group: PropTypes.string.isRequired,
-    date: PropTypes.string.isRequired,
-    week: PropTypes.number.isRequired
-};
-
-GetTeacherSchedule.propTypes = {
-    teacher: PropTypes.string.isRequired,
-    date: PropTypes.string.isRequired,
-    week: PropTypes.number.isRequired
-};
-
-GetMySchedule.propTypes = {
-    date: PropTypes.string.isRequired,
-    week: PropTypes.number.isRequired
-};
 
 export {GetGroupSchedule, GetMySchedule, GetTeacherSchedule}

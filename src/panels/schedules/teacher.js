@@ -1,14 +1,24 @@
-import {Button, Calendar, CustomSelect, Epic, FormItem, Group, LocaleProvider, Spinner} from "@vkontakte/vkui";
-import {Icon16CalendarOutline,} from "@vkontakte/icons";
+import {
+    Button,
+    Calendar, Cell,
+    Epic, Footer,
+    Group,
+    LocaleProvider, Search,
+    Spinner,
+    Tooltip
+} from "@vkontakte/vkui";
+import {Icon16CalendarOutline, Icon16UserOutline, Icon24Done,} from "@vkontakte/icons";
 import React, {useEffect, useState} from "react";
 import {GetTeacherSchedule} from "../../schedule/schedule";
 import bridge from "@vkontakte/vk-bridge";
-import {capitalizeFirstLetter, openAnyError, Scrollable} from "../../other/other";
+import {capitalizeFirstLetter, formatName, openAnyError, Scrollable, update} from "../../other/other";
 import {format} from "@vkontakte/vkui/dist/lib/date";
 import {Popover} from "@vkontakte/vkui/dist/components/Popover/Popover";
 import config from "../../other/config.json";
 
 export const TeacherSch = () => {
+    const [tooltip10, setTooltip10] = React.useState(() => window["tooltips"][10]);
+
     const [snackbar, setSnackbar] = React.useState(null);
 
     const date = new Date()
@@ -31,26 +41,20 @@ export const TeacherSch = () => {
     }
 
     const [teacher, setTeacher] = React.useState();
-    const onChange = (e) => {
-        setTeacher(e.target.value)
-        setResultStory("load")
-    };
+    const [teacherName, setTeacherName] = React.useState();
 
-    const [fetching, setFetching] = React.useState(false);
     const [options, setOptions] = React.useState([]);
-    const fetchOptions = () => {
-        setFetching(true);
+    useEffect(() => {
         bridge.send(
             "VKWebAppCallAPIMethod",
             {"method": "execute.getTeachers", "params": {"v": "5.154", "access_token": config.token}}
         ).then((data) => {
             setOptions(data.response);
-            setFetching(false);
         }).catch((error) => {
             openAnyError(snackbar, setSnackbar)
             console.log(error)
         });
-    };
+    }, [])
 
     const [result, setResult] = React.useState(<div></div>);
     useEffect(() => {
@@ -59,39 +63,97 @@ export const TeacherSch = () => {
     }, [selectedDate || selected, teacher]);
 
     const [shown, setShown] = React.useState(false);
+    const [activeView, setActiveView] = React.useState('main');
+    const [search, setSearch] = React.useState('');
+    const onChange = (e) => {
+        setSearch(e.target.value);
+    };
+
+    const thematicsFiltered = options.filter(
+        ({ label }) => label.toLowerCase().indexOf(search.toLowerCase()) > -1,
+    );
+
     return (
-        <div>
-            <div style={{display: 'flex', flexDirection: 'row', flexWrap: 'nowrap', alignItems: 'center', justifyContent: 'space-between'}}>
-                <Popover action="click" shown={shown} onShownChange={setShown}
-                         style={{display: 'flex', justifyContent: 'center', background: 'none'}}
-                         content={<LocaleProvider value='ru'>
-                             <Calendar size='m' value={selectedDate} onChange={change} disablePickers={true} showNeighboringMonth={true}/>
-                         </LocaleProvider>}>
-                    <Button appearance='accent-invariable' mode='outline' style={{
-                        margin: '0 var(--vkui--size_base_padding_horizontal--regular)',
-                        width: 'max-content'
-                    }} before={<Icon16CalendarOutline/>}>
-                        {`${capitalizeFirstLetter(selectedDate.toLocaleDateString('ru',
-                            {month: 'short', year: '2-digit'}
-                        ))}`}
-                    </Button>
-                </Popover>
-                <FormItem style={{padding: '0 var(--vkui--size_base_padding_horizontal--regular) 0 0', flex: '1'}}>
-                    <CustomSelect placeholder="Преподаватель" searchable options={options} selectType='default'
-                                  onChange={onChange} value={teacher} onOpen={options.length === 0 && fetchOptions}
-                                  fetching={fetching} style={{width: '100%'}}/>
-                </FormItem>
-            </div>
-            <Scrollable setSelected={setSelected} selectedDate={selectedDate} setSelectedDate={change} selected={selected} type='teacher-schedule'/>
-            <Epic activeStory={resultStory}>
-                <Group id="schedule" separator="hide" mode='plain'>
-                    {result}
-                </Group>
-                <Group id="load" separator="hide" mode='plain'>
-                    <Spinner size="large" style={{margin: '10px 0'}}/>
-                </Group>
-            </Epic>
-            {snackbar}
-        </div>
+        <Epic activeStory={activeView} style={{padding: '0'}}>
+            <Group id='groupSelector' separator='hide' mode='plain'>
+                <div style={{flex: '1', display: 'flex', justifyContent: 'right'}}>
+                    <Button appearance='negative' align="center" mode="outline"
+                            onClick={() => {setActiveView('main')}}
+                            style={{margin: '0 var(--vkui--size_base_padding_horizontal--regular) calc(var(--vkui--size_base_padding_vertical--regular)/2)'}}
+                    >Закрыть</Button>
+                </div>
+                <Search value={search} onChange={onChange} after={null} />
+                {thematicsFiltered.length > 0 &&
+                    thematicsFiltered.map((option) =>
+                        <Cell
+                            style={{padding: '0 var(--vkui--size_base_padding_horizontal--regular)'}}
+                            key={option.value}
+                            onClick={() => {
+                                setTeacher(option.value)
+                                setTeacherName(formatName(option.label))
+                                setResultStory("load")
+                                setActiveView('main')
+                            }}
+                            after={
+                                option.value === teacher ? <Icon24Done fill="var(--vkui--color_icon_accent)" /> : null
+                            }
+                        >{option.label}</Cell>
+                    )
+                }
+                {thematicsFiltered.length === 0 && <Footer>Ничего не найдено</Footer>}
+            </Group>
+            <Group id='main' separator='hide' mode='plain'>
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    flexWrap: 'nowrap',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
+                }}>
+                    <Popover action="click" shown={shown} onShownChange={setShown}
+                             style={{display: 'flex', justifyContent: 'center', background: 'none'}}
+                             content={<LocaleProvider value='ru'>
+                                 <Calendar size='m' value={selectedDate} onChange={change} disablePickers={true}
+                                           showNeighboringMonth={true}/>
+                             </LocaleProvider>}>
+                        <Button appearance='accent-invariable' mode='outline' style={{
+                            margin: '0 var(--vkui--size_base_padding_horizontal--regular)',
+                            width: 'max-content'
+                        }} before={<Icon16CalendarOutline/>}>
+                            {`${capitalizeFirstLetter(selectedDate.toLocaleDateString('ru',
+                                {month: 'short', year: '2-digit'}
+                            ))}`}
+                        </Button>
+                    </Popover>
+                    <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+                        <Button appearance='accent-invariable' mode='outline'
+                                onClick={() => setActiveView('groupSelector')}
+                                style={{
+                                    margin: '0 var(--vkui--size_base_padding_horizontal--regular)',
+                                    width: 'max-content'
+                                }} before={<Tooltip
+                            style={{textAlign: 'center'}}
+                            text="Выберите преподавателя из списка, чтобы просмотреть его расписание."
+                            isShown={tooltip10} onClose={() => update(10, setTooltip10)}
+                        >
+                            <Icon16UserOutline/>
+                        </Tooltip>}>
+                            {teacherName || "Преподаватель"}
+                        </Button>
+                    </div>
+                </div>
+                <Scrollable setSelected={setSelected} selectedDate={selectedDate} setSelectedDate={change}
+                            selected={selected} type='teacher-schedule' tooltip={false}/>
+                <Epic activeStory={resultStory}>
+                    <Group id="schedule" separator="hide" mode='plain'>
+                        {result}
+                    </Group>
+                    <Group id="load" separator="hide" mode='plain'>
+                        <Spinner size="large" style={{margin: '10px 0'}}/>
+                    </Group>
+                </Epic>
+                {snackbar}
+            </Group>
+        </Epic>
     )
 };
