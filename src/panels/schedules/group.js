@@ -3,7 +3,7 @@ import {
     Calendar, Cell,
     Epic, Footer,
     Group,
-    LocaleProvider, Search,
+    LocaleProvider, PullToRefresh, Search,
     Spinner,
     Tooltip,
 } from "@vkontakte/vkui";
@@ -73,79 +73,92 @@ export const GroupSch = () => {
         ({ label }) => label.toLowerCase().indexOf(search.toLowerCase()) > -1,
     );
 
+    const [fetching, setFetching] = React.useState(false);
+    const onRefresh = () => {
+        setFetching(true);
+        setResultStory("load")
+        setTimeout(() => {
+            setResultStory("schedule")
+            setResult(<GetGroupSchedule group={group} activePanel={selected} date={format(selectedDate, 'DD.MM.YYYY')} week={selectedDate.getWeek()}/>);
+            setFetching(false);
+        }, 100);
+    }
+
     return (
-        <Epic activeStory={activeView} style={{padding: '0'}}>
-            <Group id='groupSelector' separator='hide' mode='plain'>
-                <div style={{flex: '1', display: 'flex', justifyContent: 'right'}}>
-                    <Button appearance='negative' align="center" mode="outline"
-                            onClick={() => {setActiveView('main')}}
-                            style={{margin: '0 var(--vkui--size_base_padding_horizontal--regular) calc(var(--vkui--size_base_padding_vertical--regular)/2)'}}
-                            before={<Icon16CancelCircleOutline/>}
-                    >Закрыть</Button>
-                </div>
-                <Search value={search} onChange={onChange} after={null} />
-                {thematicsFiltered.length > 0 &&
-                    thematicsFiltered.map((option) =>
-                        <Cell
-                            style={{padding: '0 var(--vkui--size_base_padding_horizontal--regular)'}}
-                            key={option.value}
-                            onClick={() => {
-                                setGroup(option.value)
-                                setGroupName(option.label)
-                                setResultStory("load")
-                                setActiveView('main')
-                            }}
-                            after={
-                                option.value === group ? <Icon24Done fill="var(--vkui--color_icon_accent)" /> : null
-                            }
-                        >{option.label}</Cell>
-                    )
-                }
-                {thematicsFiltered.length === 0 && <Footer>Ничего не найдено</Footer>}
-            </Group>
-            <Group id='main' separator='hide' mode='plain'>
-                <div style={{display: 'flex', flexDirection: 'row', flexWrap: 'nowrap', alignItems: 'center', justifyContent: 'space-between'}}>
-                    <Popover action="click" shown={shown} onShownChange={setShown} style={{display: 'flex', justifyContent: 'center', background: 'none'}}
-                             content={<LocaleProvider value='ru'>
-                                 <Calendar size='m' value={selectedDate} onChange={change} disablePickers={true} showNeighboringMonth={true}/>
-                             </LocaleProvider>}>
-                        <Button appearance='accent-invariable' mode='outline' style={{
-                            margin: '0 var(--vkui--size_base_padding_horizontal--regular)',
-                            width: 'max-content'
-                        }} before={<Icon16CalendarOutline/>}>
-                            {`${capitalizeFirstLetter(selectedDate.toLocaleDateString('ru',
-                                {month: 'short', year: '2-digit'}
-                            ))}`}
-                        </Button>
-                    </Popover>
-                    <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
-                        <Button appearance='accent-invariable' mode='outline'
-                                onClick={() => setActiveView('groupSelector')}
-                                style={{
-                                    margin: '0 var(--vkui--size_base_padding_horizontal--regular)',
-                                    width: 'max-content'
-                        }} before={<Tooltip
-                            style={{textAlign: 'center'}}
-                            text="Выберите группу из списка, чтобы просмотреть её расписание."
-                            isShown={tooltip9} onClose={() => update(9, setTooltip9)}
-                        >
-                            <Icon20Users3Outline/>
-                        </Tooltip>}>
-                            {groupName || "Выберите группу"}
-                        </Button>
+        <PullToRefresh onRefresh={onRefresh} isFetching={fetching} style={{height: '100%'}}>
+            <Epic activeStory={activeView} style={{padding: '0'}}>
+                <Group id='groupSelector' separator='hide' mode='plain'>
+                    <div style={{flex: '1', display: 'flex', justifyContent: 'right'}}>
+                        <Button appearance='negative' align="center" mode="outline"
+                                onClick={() => {setActiveView('main')}}
+                                style={{margin: '0 var(--vkui--size_base_padding_horizontal--regular) calc(var(--vkui--size_base_padding_vertical--regular)/2)'}}
+                                before={<Icon16CancelCircleOutline/>}
+                        >Закрыть</Button>
                     </div>
-                </div>
-                <Scrollable setSelected={setSelected} selectedDate={selectedDate} setSelectedDate={change} selected={selected} type='group-schedule' tooltip={false}/>
-                <Epic activeStory={resultStory}>
-                    <Group id="schedule" separator="hide" mode='plain'>
-                        {result}
-                    </Group>
-                    <Group id="load" separator="hide" mode='plain'>
-                        <Spinner size="large" style={{margin: '10px 0'}}/>
-                    </Group>
-                </Epic>
-                {snackbar}
-            </Group>
-        </Epic>
+                    <Search value={search} onChange={onChange} after={null} />
+                    {thematicsFiltered.length > 0 &&
+                        thematicsFiltered.map((option) =>
+                            <Cell
+                                style={{padding: '0 var(--vkui--size_base_padding_horizontal--regular)'}}
+                                key={option.value}
+                                onClick={() => {
+                                    setGroup(option.value)
+                                    setGroupName(option.label)
+                                    setResultStory("load")
+                                    setActiveView('main')
+                                }}
+                                after={
+                                    option.value === group ? <Icon24Done fill="var(--vkui--color_icon_accent)" /> : null
+                                }
+                            >{option.label}</Cell>
+                        )
+                    }
+                    {thematicsFiltered.length === 0 && <Footer>Ничего не найдено</Footer>}
+                </Group>
+                <Group id='main' separator='hide' mode='plain'>
+                    <div style={{display: 'flex', flexDirection: 'row', flexWrap: 'nowrap', alignItems: 'center', justifyContent: 'space-between'}}>
+                        <Popover action="click" shown={shown} onShownChange={setShown} style={{display: 'flex', justifyContent: 'center', background: 'none'}}
+                                 content={<LocaleProvider value='ru'>
+                                     <Calendar size='m' value={selectedDate} onChange={change} disablePickers={true} showNeighboringMonth={true}/>
+                                 </LocaleProvider>}>
+                            <Button appearance='accent-invariable' mode='outline' style={{
+                                margin: '0 var(--vkui--size_base_padding_horizontal--regular)',
+                                width: 'max-content'
+                            }} before={<Icon16CalendarOutline/>}>
+                                {`${capitalizeFirstLetter(selectedDate.toLocaleDateString('ru',
+                                    {month: 'short', year: '2-digit'}
+                                ))}`}
+                            </Button>
+                        </Popover>
+                        <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+                            <Button appearance='accent-invariable' mode='outline'
+                                    onClick={() => setActiveView('groupSelector')}
+                                    style={{
+                                        margin: '0 var(--vkui--size_base_padding_horizontal--regular)',
+                                        width: 'max-content'
+                                    }} before={<Tooltip
+                                style={{textAlign: 'center'}}
+                                text="Выберите группу из списка, чтобы просмотреть её расписание."
+                                isShown={tooltip9} onClose={() => update(9, setTooltip9)}
+                            >
+                                <Icon20Users3Outline/>
+                            </Tooltip>}>
+                                {groupName || "Выберите группу"}
+                            </Button>
+                        </div>
+                    </div>
+                    <Scrollable setSelected={setSelected} selectedDate={selectedDate} setSelectedDate={change} selected={selected} type='group-schedule' tooltip={false}/>
+                    <Epic activeStory={resultStory}>
+                        <Group id="schedule" separator="hide" mode='plain'>
+                            {result}
+                        </Group>
+                        <Group id="load" separator="hide" mode='plain'>
+                            <Spinner size="large" style={{margin: '10px 0'}}/>
+                        </Group>
+                    </Epic>
+                    {snackbar}
+                </Group>
+            </Epic>
+        </PullToRefresh>
     )
 };

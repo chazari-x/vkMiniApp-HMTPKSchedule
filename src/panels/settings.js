@@ -1,5 +1,5 @@
 import {
-    Button,
+    Button, Card,
     CardGrid,
     CustomSelect,
     Epic,
@@ -136,7 +136,7 @@ export const Settings = ({setDisabledExitButton}) => {
                 }}>
                 <Tooltip
                     style={{textAlign: 'center'}}
-                    text="Добро пожаловать в раздел настройки расписания! Здесь вы можете настроить ваш опыт использования, выбрав тип пользователя: 'Студент' или 'Преподаватель'."
+                    text='Добро пожаловать в раздел настройки расписания! Здесь вы можете настроить ваш опыт использования, выбрав тип пользователя: "Студент" или "Преподаватель".'
                     isShown={tooltip1} onClose={() => update(1, setTooltip1)}
                 >
                     <FormItem style={{padding: '0'}}>
@@ -199,25 +199,27 @@ export const Settings = ({setDisabledExitButton}) => {
                         </Tooltip>
                     </Group>
                 </Epic>
-                <Group separator="hide" mode='card' style={{
-                    margin: '10px 0', textAlign: "justify",
-                    padding: 'var(--vkui--size_base_padding_vertical--regular) var(--vkui--size_base_padding_horizontal--regular) '
-                }}>
-                    <div style={{marginBottom: '10px'}}>
-                        <Paragraph>
-                            Если вы не нашли нужную группу или преподавателя в списке, пожалуйста,
-                            сообщите об этом разработчикам. Для отправки обратной связи и уведомления об
-                            отсутствующих данных, перейдите по следующей ссылке:
-                            <Link href={config.group.href} target="_blank"> Разработчики: {config.group.name}
-                                <Icon24ExternalLinkOutline width={16} height={16}/></Link>.
-                        </Paragraph>
-                    </div>
-                    <div>
-                        <Paragraph>
-                            Благодарим за ваше внимание и помощь в совершенствовании нашего сервиса!
-                        </Paragraph>
-                    </div>
-                </Group>
+                <CardGrid size="l" style={{margin: '0', padding: '0'}}>
+                    <Card mode="outline-tint" style={{
+                        margin: 'var(--vkui--size_base_padding_vertical--regular) 0 0', textAlign: "justify",
+                        padding: 'var(--vkui--size_base_padding_vertical--regular) var(--vkui--size_base_padding_horizontal--regular) '
+                    }}>
+                        <div style={{marginBottom: '10px'}}>
+                            <Paragraph>
+                                Если вы не нашли нужную группу или преподавателя в списке, пожалуйста,
+                                сообщите об этом разработчикам. Для отправки обратной связи и уведомления об
+                                отсутствующих данных, перейдите по следующей ссылке:
+                                <Link href={config.group.href} target="_blank"> Разработчики: {config.group.name}
+                                    <Icon24ExternalLinkOutline width={16} height={16}/></Link>.
+                            </Paragraph>
+                        </div>
+                        <div>
+                            <Paragraph>
+                                Благодарим за ваше внимание и помощь в совершенствовании нашего сервиса!
+                            </Paragraph>
+                        </div>
+                    </Card>
+                </CardGrid>
                 <div hidden={userID !== 390295814}>
                     <Button appearance='negative' align="center" mode="outline" stretched={true} onClick={() => {
                         updateGroupOrTeacherTemp({"group": "", "teacher": ""})

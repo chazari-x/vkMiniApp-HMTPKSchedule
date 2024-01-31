@@ -17,7 +17,7 @@ import {
     Icon28User,
     Icon28Users
 } from "@vkontakte/icons";
-import {Dates, fetchGroupOrTeacher, getStatusText} from "../other/other";
+import {Dates, fetchGroupOrTeacher} from "../other/other";
 import config from "../other/config.json";
 
 const crypto = require('crypto-browserify');
@@ -37,7 +37,7 @@ async function fetchSchedule(href, activePanel, week, type)  {
             if (window["result"]["week"] === week
                 && window["result"]["type"] === type) {
                 const now = Math.floor(Date.now() / 1000)
-                if (now-window["result"]["time"] < 60*3) {
+                if (now-window["result"]["time"] < 60) {
                     return [window["result"]["schedule"], null, activePanel]
                 }
             }
@@ -70,10 +70,9 @@ async function fetchSchedule(href, activePanel, week, type)  {
 
             return [window["result"]["schedule"], null, activePanel]
         case 204:
-            return [null, "Ошибка выполнения запроса к ХМТПК API: превышено время ожидания ответа от https://hmtpk.ru", activePanel]
-        case 401:
-            return [null, "Ошибка выполнения запроса к ХМТПК API. Повторите попытку, если проблема не решится, сообщите разработчикам.", activePanel]
-        default: return [null, getStatusText(response.status), activePanel]
+            return [null, "Ошибка выполнения запроса к ХМТПК API: превышено время ожидания ответа от https://hmtpk.ru. Повторите попытку позже, если проблема не решится, сообщите разработчикам.", activePanel]
+        default:
+            return [null, "Ошибка выполнения запроса к ХМТПК API. Повторите попытку позже, если проблема не решится, сообщите разработчикам.", activePanel]
     }
 }
 
@@ -100,8 +99,9 @@ const GetGroupSchedule = ({group, date, activePanel, week}) => {
     fetchSchedule(href, activePanel, week, type).then(res => {
         renderBlock(res, "group-schedule")
     }).catch(err => {
-        renderBlock([null, err, activePanel], "group-schedule")
-    }).catch(() => {})
+        console.error(err)
+        renderBlock([null, "Ошибка выполнения запроса к ХМТПК API. Повторите попытку позже, если проблема не решится, сообщите разработчикам.", activePanel], "group-schedule")
+    })
 
     return <Epic activeStory={activePanel}>
         {Dates.map(item => {
@@ -135,8 +135,9 @@ const GetTeacherSchedule = ({teacher, date, activePanel, week}) => {
     fetchSchedule(href, activePanel, week, type).then(res => {
         renderBlock(res, "teacher-schedule")
     }).catch(err => {
-        renderBlock([null, err, activePanel], "teacher-schedule")
-    }).catch(() => {})
+        console.error(err)
+        renderBlock([null, "Ошибка выполнения запроса к ХМТПК API. Повторите попытку позже, если проблема не решится, сообщите разработчикам.", activePanel], "teacher-schedule")
+    })
 
     return <Epic activeStory={activePanel}>
         {Dates.map(item => {
@@ -172,8 +173,9 @@ const GetMySchedule = ({date, activePanel, week}) => {
         fetchSchedule(href, activePanel, week, type).then(res => {
             renderBlock(res, "my-schedule")
         }).catch(err => {
-            renderBlock([null, err, activePanel], "my-schedule")
-        }).catch(() => {})
+            console.error(err)
+            renderBlock([null, "Ошибка выполнения запроса к ХМТПК API. Повторите попытку позже, если проблема не решится, сообщите разработчикам.", activePanel], "my-schedule")
+        })
 
     }).catch(err => {
         let message = "За Вами не закреплены ни группа ни преподаватель. Измените настройки в меню \"Настройки\"."
@@ -242,8 +244,9 @@ const RenderSchedule = ({json, dayNum, err}) => {
             <CardGrid size='m' key={`lesson-${lesson['num']}-num-${i}`} style={{
                 margin: '0px 4px', padding: '0px', justifyContent: 'center', alignItems: 'center', width: '100%'
             }}>
-                <ContentCard mode='outline-tint' text={lesson['time'].replaceAll('- ', '')}
-                             style={{flex: '0 0 4em', textAlign: 'center', background: 'none'}}/>
+                <Group separator="hide" mode="plain" style={{flex: '0 0 4em', textAlign: 'center', background: 'none'}}>
+                    {lesson['time'].replaceAll('- ', '')}
+                </Group>
                 <Div style={{flex: '1', padding: 'var(--vkui--size_base_padding_vertical--regular) 0'}}>
                     <Div style={{
                         padding: '0 var(--vkui--size_base_padding_horizontal--regular) 2px 0',
