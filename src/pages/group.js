@@ -8,13 +8,13 @@ import {
     Tooltip,
 } from "@vkontakte/vkui";
 import React, {useEffect, useState} from "react";
-import {GetGroupSchedule} from "../../schedule/schedule";
-import bridge from "@vkontakte/vk-bridge";
-import {capitalizeFirstLetter, openAnyError, Scrollable, update} from "../../other/other";
+import {GetGroupSchedule} from "../schedule/schedule";
+import {capitalizeFirstLetter, openAnyError, Scrollable, update} from "../utils/utils";
 import {format} from "@vkontakte/vkui/dist/lib/date";
 import {Popover} from "@vkontakte/vkui/dist/components/Popover/Popover";
 import {Icon16CalendarOutline, Icon16CancelCircleOutline, Icon20Users3Outline, Icon24Done} from "@vkontakte/icons";
-import config from "../../other/config.json";
+import config from "../etc/config.json"
+import {fetchGroups} from "../api/api";
 
 export const GroupSch = () => {
     const [tooltip9, setTooltip9] = React.useState(() => window["tooltips"][9]);
@@ -45,20 +45,27 @@ export const GroupSch = () => {
 
     const [options, setOptions] = React.useState([]);
     useEffect(() => {
-        bridge.send(
-            "VKWebAppCallAPIMethod",
-            {"method": "execute.getGroups", "params": {"v": "5.154", "access_token": config.token}}
-        ).then((data) => {
-            setOptions(data.response);
-        }).catch((error) => {
-            openAnyError(snackbar, setSnackbar)
-            console.log(error)
-        });
+        if (window['groups'] !== undefined) {
+            if (window['groups'].length > 0) {
+                setOptions(window['groups'])
+                return
+            }
+        }
+
+        fetchGroups()
+            .then(async (data) => {
+                window['groups'] = ((await data.json())['response'])
+                setOptions(window['groups']);
+            })
+            .catch((error) => {
+                openAnyError(snackbar, setSnackbar)
+                console.log(error)
+            });
     }, [])
 
     const [result, setResult] = React.useState(<div></div>);
     useEffect(() => {
-        setResultStory('schedule')
+        setResultStory('load')
         setResult(<GetGroupSchedule group={group} activePanel={selected} date={format(selectedDate, 'DD.MM.YYYY')} week={selectedDate.getWeek()}/>);
     }, [selectedDate || selected, group]);
 
@@ -77,12 +84,13 @@ export const GroupSch = () => {
     const onRefresh = () => {
         setFetching(true);
         setResultStory("load")
-        setTimeout(() => {
-            setResultStory("schedule")
-            setResult(<GetGroupSchedule group={group} activePanel={selected} date={format(selectedDate, 'DD.MM.YYYY')} week={selectedDate.getWeek()}/>);
-            setFetching(false);
-        }, 100);
+        setResult(<GetGroupSchedule group={group} activePanel={selected} date={format(selectedDate, 'DD.MM.YYYY')} week={selectedDate.getWeek()}/>);
     }
+
+    useEffect(() => {
+        setResultStory("schedule")
+        setFetching(false);
+    }, [result])
 
     return (
         <PullToRefresh onRefresh={onRefresh} isFetching={fetching} style={{height: '100%'}}>
@@ -93,7 +101,7 @@ export const GroupSch = () => {
                                 onClick={() => {setActiveView('main')}}
                                 style={{margin: '0 var(--vkui--size_base_padding_horizontal--regular) calc(var(--vkui--size_base_padding_vertical--regular)/2)'}}
                                 before={<Icon16CancelCircleOutline/>}
-                        >Закрыть</Button>
+                        >{config.buttons.close}</Button>
                     </div>
                     <Search value={search} onChange={onChange} after={null} />
                     {thematicsFiltered.length > 0 &&
@@ -104,7 +112,6 @@ export const GroupSch = () => {
                                 onClick={() => {
                                     setGroup(option.value)
                                     setGroupName(option.label)
-                                    setResultStory("load")
                                     setActiveView('main')
                                 }}
                                 after={
@@ -113,13 +120,18 @@ export const GroupSch = () => {
                             >{option.label}</Cell>
                         )
                     }
-                    {thematicsFiltered.length === 0 && <Footer>Ничего не найдено</Footer>}
+                    {thematicsFiltered.length === 0 && <Footer>{config.texts.NotFound}</Footer>}
                 </Group>
                 <Group id='main' separator='hide' mode='plain'>
                     <div style={{display: 'flex', flexDirection: 'row', flexWrap: 'nowrap', alignItems: 'center', justifyContent: 'space-between'}}>
                         <Popover action="click" shown={shown} onShownChange={setShown} style={{display: 'flex', justifyContent: 'center', background: 'none'}}
                                  content={<LocaleProvider value='ru'>
-                                     <Calendar size='m' value={selectedDate} onChange={change} disablePickers={true} showNeighboringMonth={true}/>
+                                     <Calendar
+                                         size='m' value={selectedDate} onChange={change}
+                                         disablePickers={true} showNeighboringMonth={true}
+                                         maxDateTime={(new Date()).setMonth((new Date()).getMonth() + 1)}
+                                         minDateTime={(new Date()).setFullYear((new Date()).getFullYear() - 10)}
+                                     />
                                  </LocaleProvider>}>
                             <Button appearance='accent-invariable' mode='outline' style={{
                                 margin: '0 var(--vkui--size_base_padding_horizontal--regular)',
@@ -138,21 +150,21 @@ export const GroupSch = () => {
                                         width: 'max-content'
                                     }} before={<Tooltip
                                 style={{textAlign: 'center'}}
-                                text="Выберите группу из списка, чтобы просмотреть её расписание."
+                                text={config.tooltips.tooltip9}
                                 isShown={tooltip9} onClose={() => update(9, setTooltip9)}
                             >
                                 <Icon20Users3Outline/>
                             </Tooltip>}>
-                                {groupName || "Выберите группу"}
+                                {groupName || config.buttons.selectGroup}
                             </Button>
                         </div>
                     </div>
                     <Scrollable setSelected={setSelected} selectedDate={selectedDate} setSelectedDate={change} selected={selected} type='group-schedule' tooltip={false}/>
                     <Epic activeStory={resultStory}>
-                        <Group id="schedule" separator="hide" mode='plain'>
+                        <Group id="schedule" separator="hide" mode='plain' style={{minHeight: 'calc(100vh/2)'}}>
                             {result}
                         </Group>
-                        <Group id="load" separator="hide" mode='plain'>
+                        <Group id="load" separator="hide" mode='plain' style={{minHeight: 'calc(100vh/2)'}}>
                             <Spinner size="large" style={{margin: '10px 0'}}/>
                         </Group>
                     </Epic>

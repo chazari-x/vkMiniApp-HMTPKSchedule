@@ -1,143 +1,31 @@
-import bridge from "@vkontakte/vk-bridge";
 import React from "react";
-import config from "./config.json";
+import config from "../etc/config.json";
 import {Group, HorizontalScroll, Snackbar, Tabs, TabsItem, Tooltip, TooltipContainer} from "@vkontakte/vkui";
 import {Icon28ErrorCircleOutline} from "@vkontakte/icons";
 import {format} from "@vkontakte/vkui/dist/lib/date";
+import {updateTooltips} from "../api/api";
 
-const capitalizeFirstLetter = (str) => {
+export function toDataURL(url, callback) {
+    const xhr = new XMLHttpRequest();
+    xhr.onload = function() {
+        const reader = new FileReader();
+        reader.onloadend = function() {
+            callback(reader.result);
+        }
+        reader.readAsDataURL(xhr.response);
+    };
+    xhr.open('GET', url);
+    xhr.responseType = 'blob';
+    xhr.send();
+}
+
+export const capitalizeFirstLetter = (str) => {
     let chars = str.split('');
     chars[0] = chars[0].toUpperCase();
     return chars.join('');
 }
 
-const update = (tooltip, setTooltip) => {
-    window["tooltips"][tooltip] = false
-    if (setTooltip !== undefined) {
-        setTooltip(false)
-    }
-    updateTooltips().then().catch()
-}
-
-async function updateTooltips() {
-    if (window['userID'] === 0 || window['userID'] === undefined || window['userID'] === null) {
-        window['userID'] = (await bridge.send('VKWebAppGetUserInfo')).id
-    }
-
-    if (window['tooltips'] === null && window['tooltips'] === undefined) {
-        return null
-    }
-
-    await bridge.send(
-        "VKWebAppCallAPIMethod",
-        {
-            "method": "storage.set",
-            "params": {
-                "v": "5.154",
-                "access_token": config.token,
-                "key": "tooltips",
-                "user_id": window['userID'],
-                "value": JSON.stringify(window['tooltips'])
-            }
-        }
-    ).then().catch()
-}
-
-async function updateGroupOrTeacher(openSuccess, openError) {
-    window['groupOrTeacher'] = window['groupOrTeacherTemp']
-
-    await bridge.send(
-        "VKWebAppCallAPIMethod",
-        {
-            "method": "storage.set",
-            "params": {
-                "v": "5.154",
-                "access_token": config.token,
-                "key": "schedule",
-                "user_id": window['userID'],
-                "value": JSON.stringify(window['groupOrTeacher'])
-            }
-        }
-    ).then(() => {
-        openSuccess()
-    }).catch((error) => {
-        console.log(error)
-        openError()
-    });
-}
-
-async function fetchGroupOrTeacher() {
-    if (window['userID'] === 0 || window['userID'] === undefined || window['userID'] === null) {
-        window['userID'] = (await bridge.send('VKWebAppGetUserInfo')).id
-    }
-
-    await bridge.send(
-        "VKWebAppCallAPIMethod",
-        {
-            "method": "storage.get",
-            "params": {
-                "v": "5.154",
-                "access_token": config.token,
-                "key": "tooltips",
-                "user_id": window['userID']
-            }
-        }
-    ).then(response => {
-        const tooltips = response.response[0].value
-        if (tooltips !== "") {
-            window['tooltips'] = JSON.parse(tooltips)
-        }
-
-        if (window['tooltips'] === undefined) {
-            window['tooltips'] = [true]
-        }
-
-        if (!Array.isArray(window['tooltips'])) {
-            window['tooltips'] = [true]
-        }
-
-        while (window['tooltips'].length < 10+1) {
-            window['tooltips'].push(true)
-        }
-    }).catch()
-
-    if (window['groupOrTeacher'] !== null && window['groupOrTeacher'] !== undefined) {
-        return null
-    }
-
-    const response = await bridge.send(
-        "VKWebAppCallAPIMethod",
-        {
-            "method": "storage.get",
-            "params": {
-                "v": "5.154",
-                "access_token": config.token,
-                "key": "schedule",
-                "user_id": window['userID']
-            }
-        }
-    )
-
-    const groupOrTeacher = await response.response[0].value
-    if (groupOrTeacher === "") {
-        window['groupOrTeacher'] = {"group": "", "teacher": ""}
-    } else {
-        try {
-            window['groupOrTeacher'] = JSON.parse(groupOrTeacher)
-            if (window['groupOrTeacher'] === undefined) {
-                window['groupOrTeacher'] = {"group": "", "teacher": ""}
-            } else if (window['groupOrTeacher']['group'] === undefined || window['groupOrTeacher']['teacher'] === undefined) {
-                window['groupOrTeacher'] = {"group": "", "teacher": ""}
-            }
-        } catch {
-            window['groupOrTeacher'] = {"group": "", "teacher": ""}
-        }
-    }
-
-    return window['groupOrTeacher']
-}
-
-const openAnyError = (snackbar, setSnackbar) => {
+export const openAnyError = (snackbar, setSnackbar) => {
     if (snackbar) return;
     setSnackbar(<Snackbar onClose={() => setSnackbar(null)}
                           before={<Icon28ErrorCircleOutline fill="var(--vkui--color_icon_negative)"/>}
@@ -145,7 +33,7 @@ const openAnyError = (snackbar, setSnackbar) => {
     );
 };
 
-const Dates = [
+export const Dates = [
     {id: 0, value: 'ПН'},
     {id: 1, value: 'ВТ'},
     {id: 2, value: 'СР'},
@@ -155,7 +43,7 @@ const Dates = [
     {id: 6, value: 'ВС'}
 ]
 
-const Scrollable = ({selectedDate, setSelected, setSelectedDate, selected, type, tooltip}) => {
+export const Scrollable = ({selectedDate, setSelected, setSelectedDate, selected, type, tooltip}) => {
     const [tooltip7, setTooltip7] = React.useState(() => window["tooltips"][7]);
 
     const addDays = (date, days) => {
@@ -171,7 +59,7 @@ const Scrollable = ({selectedDate, setSelected, setSelectedDate, selected, type,
                     position: 'relative', zIndex: tooltip ? (window["tooltips"][6]||window["tooltips"][5]) ? 0 : 1 : 0
                 }}>
                     <Tooltip style={{display: 'flex', justifyContent: 'center', textAlign: 'center'}}
-                             text="Кликните по нужному дню, чтобы мгновенно просмотреть расписание."
+                             text={config.tooltips.tooltip7}
                              isShown={tooltip7&&!(window["tooltips"][6]||window["tooltips"][5])&&tooltip}
                              onClose={() => update(7, setTooltip7)}
                     >
@@ -214,7 +102,7 @@ const Scrollable = ({selectedDate, setSelected, setSelectedDate, selected, type,
     );
 };
 
-function formatName(inputName) {
+export function formatName(inputName) {
     const parts = inputName.split(" ");
 
     if (parts.length === 1) {
@@ -236,8 +124,10 @@ Date.prototype.getWeek = function() {
     return Math.ceil((((this - onejan) / 86400000) + onejan.getDay()-1)/7);
 }
 
-export {
-    capitalizeFirstLetter, fetchGroupOrTeacher,
-    openAnyError, Dates, Scrollable, updateTooltips,
-    updateGroupOrTeacher, update, formatName
-};
+export const update = (tooltip, setTooltip) => {
+    window["tooltips"][tooltip] = false
+    if (setTooltip !== undefined) {
+        setTooltip(false)
+    }
+    updateTooltips().then().catch()
+}

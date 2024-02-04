@@ -9,12 +9,12 @@ import {
 } from "@vkontakte/vkui";
 import {Icon16CalendarOutline, Icon16CancelCircleOutline, Icon16UserOutline, Icon24Done,} from "@vkontakte/icons";
 import React, {useEffect, useState} from "react";
-import {GetTeacherSchedule} from "../../schedule/schedule";
-import bridge from "@vkontakte/vk-bridge";
-import {capitalizeFirstLetter, formatName, openAnyError, Scrollable, update} from "../../other/other";
+import {GetTeacherSchedule} from "../schedule/schedule";
+import {capitalizeFirstLetter, formatName, openAnyError, Scrollable, update} from "../utils/utils";
 import {format} from "@vkontakte/vkui/dist/lib/date";
 import {Popover} from "@vkontakte/vkui/dist/components/Popover/Popover";
-import config from "../../other/config.json";
+import config from "../etc/config.json";
+import {fetchTeachers} from "../api/api";
 
 export const TeacherSch = () => {
     const [tooltip10, setTooltip10] = React.useState(() => window["tooltips"][10]);
@@ -45,20 +45,25 @@ export const TeacherSch = () => {
 
     const [options, setOptions] = React.useState([]);
     useEffect(() => {
-        bridge.send(
-            "VKWebAppCallAPIMethod",
-            {"method": "execute.getTeachers", "params": {"v": "5.154", "access_token": config.token}}
-        ).then((data) => {
-            setOptions(data.response);
-        }).catch((error) => {
-            openAnyError(snackbar, setSnackbar)
-            console.log(error)
-        });
+        if (window['teachers'] !== undefined) {
+            if (window['teachers'].length > 0) {
+                setOptions(window['teachers']);
+                return
+            }
+        }
+
+        fetchTeachers()
+            .then(async (data) => {
+                setOptions((await data.json())['response']);
+            }).catch((error) => {
+                openAnyError(snackbar, setSnackbar)
+                console.log(error)
+            });
     }, [])
 
     const [result, setResult] = React.useState(<div></div>);
     useEffect(() => {
-        setResultStory('schedule')
+        setResultStory('load')
         setResult(<GetTeacherSchedule teacher={teacher} activePanel={selected} date={format(selectedDate, 'DD.MM.YYYY')} week={selectedDate.getWeek()}/>);
     }, [selectedDate || selected, teacher]);
 
@@ -77,12 +82,13 @@ export const TeacherSch = () => {
     const onRefresh = () => {
         setFetching(true);
         setResultStory("load")
-        setTimeout(() => {
-            setResultStory("schedule")
-            setResult(<GetTeacherSchedule teacher={teacher} activePanel={selected} date={format(selectedDate, 'DD.MM.YYYY')} week={selectedDate.getWeek()}/>);
-            setFetching(false);
-        }, 100);
+        setResult(<GetTeacherSchedule teacher={teacher} activePanel={selected} date={format(selectedDate, 'DD.MM.YYYY')} week={selectedDate.getWeek()}/>);
     }
+
+    useEffect(() => {
+        setResultStory('schedule')
+        setFetching(false);
+    }, [result])
 
     return (
         <PullToRefresh onRefresh={onRefresh} isFetching={fetching} style={{height: '100%'}}>
@@ -104,7 +110,6 @@ export const TeacherSch = () => {
                                 onClick={() => {
                                     setTeacher(option.value)
                                     setTeacherName(formatName(option.label))
-                                    setResultStory("load")
                                     setActiveView('main')
                                 }}
                                 after={
@@ -113,7 +118,7 @@ export const TeacherSch = () => {
                             >{option.label}</Cell>
                         )
                     }
-                    {thematicsFiltered.length === 0 && <Footer>Ничего не найдено</Footer>}
+                    {thematicsFiltered.length === 0 && <Footer>{config.texts.NotFound}</Footer>}
                 </Group>
                 <Group id='main' separator='hide' mode='plain'>
                     <div style={{
@@ -126,8 +131,12 @@ export const TeacherSch = () => {
                         <Popover action="click" shown={shown} onShownChange={setShown}
                                  style={{display: 'flex', justifyContent: 'center', background: 'none'}}
                                  content={<LocaleProvider value='ru'>
-                                     <Calendar size='m' value={selectedDate} onChange={change} disablePickers={true}
-                                               showNeighboringMonth={true}/>
+                                     <Calendar
+                                         size='m' value={selectedDate} onChange={change}
+                                         disablePickers={true} showNeighboringMonth={true}
+                                         maxDateTime={(new Date()).setMonth((new Date()).getMonth() + 1)}
+                                         minDateTime={(new Date()).setFullYear((new Date()).getFullYear() - 10)}
+                                     />
                                  </LocaleProvider>}>
                             <Button appearance='accent-invariable' mode='outline' style={{
                                 margin: '0 var(--vkui--size_base_padding_horizontal--regular)',
@@ -146,22 +155,22 @@ export const TeacherSch = () => {
                                         width: 'max-content'
                                     }} before={<Tooltip
                                 style={{textAlign: 'center'}}
-                                text="Выберите преподавателя из списка, чтобы просмотреть его расписание."
+                                text={config.tooltips.tooltip10}
                                 isShown={tooltip10} onClose={() => update(10, setTooltip10)}
                             >
                                 <Icon16UserOutline/>
                             </Tooltip>}>
-                                {teacherName || "Преподаватель"}
+                                {teacherName || config.buttons.selectTeacher}
                             </Button>
                         </div>
                     </div>
                     <Scrollable setSelected={setSelected} selectedDate={selectedDate} setSelectedDate={change}
                                 selected={selected} type='teacher-schedule' tooltip={false}/>
                     <Epic activeStory={resultStory}>
-                        <Group id="schedule" separator="hide" mode='plain'>
+                        <Group id="schedule" separator="hide" mode='plain' style={{minHeight: 'calc(100vh/2)'}}>
                             {result}
                         </Group>
-                        <Group id="load" separator="hide" mode='plain'>
+                        <Group id="load" separator="hide" mode='plain' style={{minHeight: 'calc(100vh/2)'}}>
                             <Spinner size="large" style={{margin: '10px 0'}}/>
                         </Group>
                     </Epic>

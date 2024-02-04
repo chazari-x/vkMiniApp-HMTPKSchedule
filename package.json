@@ -27,13 +27,16 @@
         "@vkontakte/vk-miniapps-deploy": "^0.1.6",
         "@vkontakte/vk-tunnel": "^0.1.4",
         "@vkontakte/vkui": "5.10.0",
+        "axios": "^1.6.7",
         "babel-eslint": "^10.1.0",
         "buffer": "^6.0.3",
+        "cors": "^2.8.5",
         "crypto-browserify": "^3.12.0",
         "eruda": "^3.0.1",
         "eruda-code": "^2.0.0",
         "eruda-dom": "^2.0.0",
         "events": "^3.3.0",
+        "express": "^4.18.2",
         "prop-types": "^15.7.2",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
@@ -41,6 +44,7 @@
         "stream-browserify": "^3.0.0"
     },
     "devDependencies": {
+        "concurrently": "^8.2.2",
         "cross-env": "^7.0.3",
         "react-scripts": "^5.0.1"
     },
