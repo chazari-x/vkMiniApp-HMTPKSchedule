@@ -74,6 +74,8 @@ export const Scrollable = ({selectedDate, setSelected, setSelectedDate, selected
                                 setSelected(`${type}${dayNum.toString()}`)
                                 let d = addDays(selectedDate, -dayNum + i)
                                 return <TabsItem
+                                    disabled={d > (new Date).setMonth((new Date).getMonth() + 1)
+                                        || addDays(d, 1) <= (new Date).setFullYear((new Date).getFullYear() - 10)}
                                     id={`tabsItem-${type}${i.toString()}`}
                                     aria-controls={`tabsItem-${type}${i.toString()}`}
                                     key={`${type}${i.toString()}`}

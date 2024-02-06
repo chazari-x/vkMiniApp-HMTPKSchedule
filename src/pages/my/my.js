@@ -31,10 +31,11 @@ export const MySch = () => {
         dayNum = 6
     }
 
-    const [selected, setSelected] = React.useState(`my-schedule${dayNum.toString()}`);
+    let [selected, setSelected] = React.useState(`my-schedule${dayNum.toString()}`);
     const [selectedDate, setSelectedDate] = React.useState(() => date);
     const [resultStory, setResultStory] = React.useState('load');
     const change = (date) => {
+        date = new Date(format(date, "YYYY-MM-DD"))
         setSelectedDate(date)
         let dayNum = date.getDay() - 1
         if (dayNum === -1) {
@@ -46,9 +47,14 @@ export const MySch = () => {
 
     const [result, setResult] = React.useState(<div></div>);
     useEffect(() => {
+        setResultStory("load")
+        setResult(<GetMySchedule activePanel={selected} date={format(selectedDate, 'DD.MM.YYYY')} week={selectedDate.getWeek()} year={selectedDate.getFullYear()}/>)
+    }, [selectedDate || selected || resultStory]);
+
+    useEffect(() => {
         setResultStory("schedule")
-        setResult(<GetMySchedule activePanel={selected} date={format(selectedDate, 'DD.MM.YYYY')} week={selectedDate.getWeek()}/>)
-    }, [selectedDate || selected]);
+        setFetching(false);
+    }, [result])
 
     const [activeStory, setActiveStory] = React.useState('main');
     const [disabledExitButton, setDisabledExitButton] = React.useState(() => tooltip4);
@@ -83,11 +89,7 @@ export const MySch = () => {
     const onRefresh = () => {
         setFetching(true);
         setResultStory("load")
-        setTimeout(() => {
-            setResultStory("schedule")
-            setResult(<GetMySchedule activePanel={selected} date={format(selectedDate, 'DD.MM.YYYY')} week={selectedDate.getWeek()}/>)
-            setFetching(false);
-        }, 100);
+        setResult(<GetMySchedule activePanel={selected} date={format(selectedDate, 'DD.MM.YYYY')} week={selectedDate.getWeek()} year={selectedDate.getFullYear()}/>)
     }
 
     const [calendar, setCalendar] = React.useState(false)
@@ -107,7 +109,7 @@ export const MySch = () => {
                                      />
                                  </LocaleProvider>}>
                             <Button appearance='accent-invariable' mode='outline' style={{
-                                margin: '0 var(--vkui--size_base_padding_horizontal--regular) var(--vkui--size_base_padding_vertical--regular)',
+                                margin: '0 var(--vkui--size_base_padding_horizontal--regular)',
                                 width: 'max-content'
                             }} before={<Tooltip
                                 style={{textAlign: 'center'}}
@@ -123,7 +125,7 @@ export const MySch = () => {
                         </Popover>
                         <TooltipContainer fixed style={{position: 'relative', zIndex: 1,}}>
                             <Button appearance='accent-invariable' mode='outline' style={{
-                                margin: '0 var(--vkui--size_base_padding_horizontal--regular) var(--vkui--size_base_padding_vertical--regular)',
+                                margin: '0 var(--vkui--size_base_padding_horizontal--regular)',
                                 width: 'max-content'
                             }} before={<Tooltip
                                 style={{textAlign: 'center'}}
@@ -151,7 +153,7 @@ export const MySch = () => {
                     <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'flex-end'}}>
                         <TooltipContainer fixed style={{zIndex: 1}}>
                             <Button appearance='positive' mode='outline' style={{
-                                margin: '0 var(--vkui--size_base_padding_horizontal--regular) var(--vkui--size_base_padding_vertical--regular)',
+                                margin: '0 var(--vkui--size_base_padding_horizontal--regular)',
                                 width: 'max-content'
                             }} before={<Tooltip
                                 style={{textAlign: 'center'}}

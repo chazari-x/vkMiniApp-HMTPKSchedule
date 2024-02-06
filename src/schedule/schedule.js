@@ -6,7 +6,7 @@ import {Dates} from "../utils/utils";
 import config from '../etc/config.json';
 import {fetchGroupOrTeacher, fetchSchedule} from "../api/api";
 
-export const GetGroupSchedule = ({group, date, activePanel, week}) => {
+export const GetGroupSchedule = ({group, date, activePanel, week, year}) => {
     if (group === '' || group === undefined) {
         return <Epic activeStory={activePanel}>
             {Dates.map(item => {
@@ -26,7 +26,7 @@ export const GetGroupSchedule = ({group, date, activePanel, week}) => {
         href += `&date=${date}`
     }
 
-    fetchSchedule(href, activePanel, week, type).then(res => {
+    fetchSchedule(href, activePanel, week, type, year).then(res => {
         renderBlock(res, "group-schedule")
     }).catch(err => {
         console.error(err)
@@ -42,7 +42,7 @@ export const GetGroupSchedule = ({group, date, activePanel, week}) => {
     </Epic>
 }
 
-export const GetTeacherSchedule = ({teacher, date, activePanel, week}) => {
+export const GetTeacherSchedule = ({teacher, date, activePanel, week, year}) => {
     if (teacher === '' || teacher === undefined) {
         return <Epic activeStory={activePanel}>
             {Dates.map(item => {
@@ -62,7 +62,7 @@ export const GetTeacherSchedule = ({teacher, date, activePanel, week}) => {
         href += `&date=${date}`
     }
 
-    fetchSchedule(href, activePanel, week, type).then(res => {
+    fetchSchedule(href, activePanel, week, type, year).then(res => {
         renderBlock(res, "teacher-schedule")
     }).catch(err => {
         console.error(err)
@@ -78,7 +78,7 @@ export const GetTeacherSchedule = ({teacher, date, activePanel, week}) => {
     </Epic>
 }
 
-export const GetMySchedule = ({date, activePanel, week}) => {
+export const GetMySchedule = ({date, activePanel, week, year}) => {
     fetchGroupOrTeacher().then(_ => {
         if (window['groupOrTeacher'] === null) {
             throw config.errors.GroupAndTeacherIsNull
@@ -100,7 +100,7 @@ export const GetMySchedule = ({date, activePanel, week}) => {
             href += `&date=${date}`
         }
 
-        fetchSchedule(href, activePanel, week, type).then(res => {
+        fetchSchedule(href, activePanel, week, type, year).then(res => {
             renderBlock(res, "my-schedule")
         }).catch(err => {
             console.error(err)

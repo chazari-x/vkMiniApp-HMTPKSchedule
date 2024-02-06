@@ -33,11 +33,11 @@ import vkBridge, {parseURLSearchParamsForGetLaunchParams} from "@vkontakte/vk-br
 import {transformVKBridgeAdaptivity} from "./transformers/transformVKBridgeAdaptivity";
 import {useAppearance, useInsets, useAdaptivity} from "@vkontakte/vk-bridge-react";
 import config from "./etc/config.json"
-import {fetchGroupOrTeacher} from "./api/api";
+import {fetchGroupOrTeacher, generateInfo} from "./api/api";
 import {onboarding} from "./onboarding/onboarding";
 import {update} from "./utils/utils";
 
-const App = () => {
+export const App = () => {
 	window['vkBridgeAppearance'] = useAppearance() || undefined; // Вместо undefined можно задать значение по умолчанию
 	const vkBridgeInsets = useInsets() || undefined; // Вместо undefined можно задать значение по умолчанию
 	const vkBridgeAdaptivityProps = transformVKBridgeAdaptivity(useAdaptivity()); // Конвертируем значения из VK Bridge в параметры AdaptivityProvider
@@ -57,6 +57,7 @@ const App = () => {
 	const [main, setMain] = React.useState("load");
 	useEffect(() => {
 		(window["groupOrTeacher"] === undefined) ? fetchGroupOrTeacher().then(() => {
+			window["queryParams"] = window.location.search
 			if (window["tooltips"][0]) {
 				onboarding()
 				update(0, undefined)
@@ -64,8 +65,16 @@ const App = () => {
 
 			setMain("main")
 		}).catch(error => {
-			// todo error page
+			window["queryParams"] = window.location.search
 			console.error(error)
+			generateInfo()
+
+			if (window["tooltips"][0]) {
+				onboarding()
+				update(0, undefined)
+			}
+
+			setMain("main")
 		}) : setMain("main")
 	}, [])
 
@@ -129,8 +138,8 @@ const App = () => {
 									<Epic id='updateGroupOrTeacher' activeStory={mode}
 										  style={{
 											  height: 'calc(100vh - var(--vkui--size_panel_header_height--regular))',
-											  padding: '0', overflowY: 'scroll'
-									}}>
+											  padding: '0'
+										  }}>
 										{PanelsKeys.map((key) => (
 											<Panel key={key} id={key} hidden={!(mode === key)}>
 												<Group
@@ -154,5 +163,3 @@ const App = () => {
 		</ConfigProvider>
 	);
 }
-
-export default App;

@@ -1,20 +1,17 @@
-import crypto from "crypto-browserify";
 import config from "../etc/config.json";
 import {Buffer} from 'buffer/';
 import bridge from "@vkontakte/vk-bridge";
 
 function token() {
-    return crypto.publicEncrypt({
-        key: config.api.publicKey, padding: crypto.constants.RSA_PKCS1_PADDING
-    }, Buffer.from(config.api.secretKey + Math.floor(Date.now() / 1000))).toString('hex')
+    return Buffer.from(window["queryParams"].substring(1)).toString('hex')
 }
 
-export async function fetchSchedule(href, activePanel, week, type) {
+export async function fetchSchedule(href, activePanel, week, type, year) {
     if (window["result"] !== undefined) {
         if (window["result"]["week"] !== undefined
             && window["result"]["type"] !== undefined
             && window["result"]["time"] !== undefined) {
-            if (window["result"]["week"] === week
+            if (window["result"]["week"] === week && window["result"]["year"] === year
                 && window["result"]["type"] === type) {
                 const now = Math.floor(Date.now() / 1000)
                 if (now - window["result"]["time"] < 60) {
@@ -24,7 +21,7 @@ export async function fetchSchedule(href, activePanel, week, type) {
         }
     }
 
-    const response = await fetch(config.api.href + href, {method: "POST", body: `Bearer ${String(token())}`})
+    const response = await fetch(config.api.href + href, {method: "POST", body: token()})
 
     switch (response.status) {
         case 200:
@@ -32,30 +29,29 @@ export async function fetchSchedule(href, activePanel, week, type) {
                 "schedule": await response.json(),
                 "time": Math.floor(Date.now() / 1000),
                 "week": week,
-                "type": type
+                "type": type,
+                "year": year
             }
 
             return [window["result"]["schedule"], null, activePanel]
         case 204:
             return [null, config.errors.TimeoutExceeded, activePanel]
+        case 408:
+            return [null, config.errors.RequestsTimeout, activePanel]
         default:
             return [null, config.errors.APINotWorking, activePanel]
     }
 }
 
 export async function fetchGroups() {
-    return fetch(config.api.href + '/groups', {method: "POST", body: `Bearer ${String(token())}`})
+    return fetch(config.api.href + '/groups', {method: "POST", body: token()})
 }
 
 export async function fetchTeachers() {
-    return fetch(config.api.href + '/teachers', {method: "POST", body: `Bearer ${String(token())}`})
+    return fetch(config.api.href + '/teachers', {method: "POST", body: token()})
 }
 
 export async function updateTooltips() {
-    if (window['userID'] === 0 || window['userID'] === undefined || window['userID'] === null) {
-        window['userID'] = (await bridge.send('VKWebAppGetUserInfo')).id
-    }
-
     if (window['tooltips'] === null && window['tooltips'] === undefined) {
         return null
     }
@@ -75,10 +71,27 @@ export async function updateGroupOrTeacher(openSuccess, openError) {
     }).then(openSuccess()).catch(openError());
 }
 
-export async function fetchGroupOrTeacher() {
-    if (window['userID'] === 0 || window['userID'] === undefined || window['userID'] === null) {
-        window['userID'] = (await bridge.send('VKWebAppGetUserInfo')).id
+export function generateInfo() {
+    if (window['tooltips'] === undefined) {
+        window['tooltips'] = [true]
+        while (window['tooltips'].length < 10 + 1) {
+            window['tooltips'].push(true)
+        }
     }
+
+    if (window['groupOrTeacher'] === undefined) {
+        if (window['groupOrTeacher']['group'] === undefined || window['groupOrTeacher']['teacher'] === undefined) {
+            window['groupOrTeacher'] = {"group": "", "teacher": ""}
+        }
+    }
+}
+
+export async function fetchGroupOrTeacher() {
+    try {
+        if (window['userID'] === 0 || window['userID'] === undefined || window['userID'] === null) {
+            window['userID'] = (await bridge.send('VKWebAppGetUserInfo')).id
+        }
+    } catch (e) {console.error(e)}
 
     const response = await bridge.send('VKWebAppStorageGet', {
         keys: ['tooltips', 'schedule'],

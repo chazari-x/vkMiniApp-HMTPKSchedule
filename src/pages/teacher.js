@@ -1,16 +1,16 @@
 import {
     Button,
     Calendar, Cell,
-    Epic, Footer,
+    Epic, Footer, FormStatus,
     Group,
-    LocaleProvider, PullToRefresh, Search,
+    LocaleProvider, Panel, PullToRefresh, Search,
     Spinner,
     Tooltip
 } from "@vkontakte/vkui";
 import {Icon16CalendarOutline, Icon16CancelCircleOutline, Icon16UserOutline, Icon24Done,} from "@vkontakte/icons";
 import React, {useEffect, useState} from "react";
 import {GetTeacherSchedule} from "../schedule/schedule";
-import {capitalizeFirstLetter, formatName, openAnyError, Scrollable, update} from "../utils/utils";
+import {capitalizeFirstLetter, formatName, Scrollable, update} from "../utils/utils";
 import {format} from "@vkontakte/vkui/dist/lib/date";
 import {Popover} from "@vkontakte/vkui/dist/components/Popover/Popover";
 import config from "../etc/config.json";
@@ -18,8 +18,6 @@ import {fetchTeachers} from "../api/api";
 
 export const TeacherSch = () => {
     const [tooltip10, setTooltip10] = React.useState(() => window["tooltips"][10]);
-
-    const [snackbar, setSnackbar] = React.useState(null);
 
     const date = new Date()
     let dayNum = date.getDay()-1
@@ -31,6 +29,7 @@ export const TeacherSch = () => {
     const [selectedDate, setSelectedDate] = useState(() => date);
     const [resultStory, setResultStory] = React.useState('load');
     const change = (date) => {
+        date = new Date(format(date, "YYYY-MM-DD"))
         setSelectedDate(date)
         let dayNum = date.getDay() - 1
         if (dayNum === -1) {
@@ -46,17 +45,25 @@ export const TeacherSch = () => {
     const [options, setOptions] = React.useState([]);
     useEffect(() => {
         if (window['teachers'] !== undefined) {
-            if (window['teachers'].length > 0) {
-                setOptions(window['teachers']);
-                return
+            if (Array.isArray(window['teachers'])) {
+                if (window['teachers'].length > 0) {
+                    setOptions(window['teachers']);
+                    return
+                }
             }
         }
 
         fetchTeachers()
             .then(async (data) => {
-                setOptions((await data.json())['response']);
+                window['teachers'] = (await data.json())['response']
+                if (Array.isArray(window['teachers'])) {
+                    setOptions(window['teachers']);
+                } else {
+                    setActive("error")
+                }
             }).catch((error) => {
-                openAnyError(snackbar, setSnackbar)
+                setOptions(window['teachers'])
+                setActive("error")
                 console.log(error)
             });
     }, [])
@@ -64,7 +71,7 @@ export const TeacherSch = () => {
     const [result, setResult] = React.useState(<div></div>);
     useEffect(() => {
         setResultStory('load')
-        setResult(<GetTeacherSchedule teacher={teacher} activePanel={selected} date={format(selectedDate, 'DD.MM.YYYY')} week={selectedDate.getWeek()}/>);
+        setResult(<GetTeacherSchedule teacher={teacher} activePanel={selected} date={format(selectedDate, 'DD.MM.YYYY')} week={selectedDate.getWeek()} year={selectedDate.getFullYear()}/>);
     }, [selectedDate || selected, teacher]);
 
     const [shown, setShown] = React.useState(false);
@@ -82,7 +89,7 @@ export const TeacherSch = () => {
     const onRefresh = () => {
         setFetching(true);
         setResultStory("load")
-        setResult(<GetTeacherSchedule teacher={teacher} activePanel={selected} date={format(selectedDate, 'DD.MM.YYYY')} week={selectedDate.getWeek()}/>);
+        setResult(<GetTeacherSchedule teacher={teacher} activePanel={selected} date={format(selectedDate, 'DD.MM.YYYY')} week={selectedDate.getWeek()} year={selectedDate.getFullYear()}/>);
     }
 
     useEffect(() => {
@@ -90,6 +97,7 @@ export const TeacherSch = () => {
         setFetching(false);
     }, [result])
 
+    const [active, setActive] = React.useState("main");
     return (
         <PullToRefresh onRefresh={onRefresh} isFetching={fetching} style={{height: '100%'}}>
             <Epic activeStory={activeView} style={{padding: '0'}}>
@@ -101,24 +109,34 @@ export const TeacherSch = () => {
                                 before={<Icon16CancelCircleOutline/>}
                         >Закрыть</Button>
                     </div>
-                    <Search value={search} onChange={onChange} after={null} />
-                    {thematicsFiltered.length > 0 &&
-                        thematicsFiltered.map((option) =>
-                            <Cell
-                                style={{padding: '0 var(--vkui--size_base_padding_horizontal--regular)'}}
-                                key={option.value}
-                                onClick={() => {
-                                    setTeacher(option.value)
-                                    setTeacherName(formatName(option.label))
-                                    setActiveView('main')
-                                }}
-                                after={
-                                    option.value === teacher ? <Icon24Done fill="var(--vkui--color_icon_accent)" /> : null
-                                }
-                            >{option.label}</Cell>
-                        )
-                    }
-                    {thematicsFiltered.length === 0 && <Footer>{config.texts.NotFound}</Footer>}
+                    <Epic activeStory={active}>
+                        <Panel id="error">
+                            <FormStatus mode='error' header='Произошла ошибка' style={{
+                                margin: 'var(--vkui--size_base_padding_vertical--regular) var(--vkui--size_base_padding_horizontal--regular)', padding: '0',
+                                justifyContent: 'center', alignItems: 'center', flex: '1'
+                            }}>{config.errors.FetchGroupsOrTeachersErr}</FormStatus>
+                        </Panel>
+                        <Panel id="main">
+                            <Search value={search} onChange={onChange} after={null} />
+                            {thematicsFiltered.length > 0 &&
+                                thematicsFiltered.map((option) =>
+                                    <Cell
+                                        style={{padding: '0 var(--vkui--size_base_padding_horizontal--regular)'}}
+                                        key={option.value}
+                                        onClick={() => {
+                                            setTeacher(option.value)
+                                            setTeacherName(formatName(option.label))
+                                            setActiveView('main')
+                                        }}
+                                        after={
+                                            option.value === teacher ? <Icon24Done fill="var(--vkui--color_icon_accent)" /> : null
+                                        }
+                                    >{option.label}</Cell>
+                                )
+                            }
+                            {thematicsFiltered.length === 0 && <Footer>{config.texts.NotFound}</Footer>}
+                        </Panel>
+                    </Epic>
                 </Group>
                 <Group id='main' separator='hide' mode='plain'>
                     <div style={{
@@ -174,7 +192,6 @@ export const TeacherSch = () => {
                             <Spinner size="large" style={{margin: '10px 0'}}/>
                         </Group>
                     </Epic>
-                    {snackbar}
                 </Group>
             </Epic>
         </PullToRefresh>

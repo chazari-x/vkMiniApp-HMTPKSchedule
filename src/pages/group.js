@@ -1,15 +1,15 @@
 import {
     Button,
     Calendar, Cell,
-    Epic, Footer,
+    Epic, Footer, FormStatus,
     Group,
-    LocaleProvider, PullToRefresh, Search,
+    LocaleProvider, Panel, PullToRefresh, Search,
     Spinner,
     Tooltip,
 } from "@vkontakte/vkui";
 import React, {useEffect, useState} from "react";
 import {GetGroupSchedule} from "../schedule/schedule";
-import {capitalizeFirstLetter, openAnyError, Scrollable, update} from "../utils/utils";
+import {capitalizeFirstLetter, Scrollable, update} from "../utils/utils";
 import {format} from "@vkontakte/vkui/dist/lib/date";
 import {Popover} from "@vkontakte/vkui/dist/components/Popover/Popover";
 import {Icon16CalendarOutline, Icon16CancelCircleOutline, Icon20Users3Outline, Icon24Done} from "@vkontakte/icons";
@@ -18,8 +18,6 @@ import {fetchGroups} from "../api/api";
 
 export const GroupSch = () => {
     const [tooltip9, setTooltip9] = React.useState(() => window["tooltips"][9]);
-
-    const [snackbar, setSnackbar] = React.useState(null);
 
     const date = new Date()
     let dayNum = date.getDay()-1
@@ -31,6 +29,7 @@ export const GroupSch = () => {
     const [selectedDate, setSelectedDate] = useState(() => date);
     const [resultStory, setResultStory] = React.useState('load');
     const change = (date) => {
+        date = new Date(format(date, "YYYY-MM-DD"))
         setSelectedDate(date)
         let dayNum = date.getDay() - 1
         if (dayNum === -1) {
@@ -46,19 +45,26 @@ export const GroupSch = () => {
     const [options, setOptions] = React.useState([]);
     useEffect(() => {
         if (window['groups'] !== undefined) {
-            if (window['groups'].length > 0) {
-                setOptions(window['groups'])
-                return
+            if (Array.isArray(window['groups'])) {
+                if (window['groups'].length > 0) {
+                    setOptions(window['groups']);
+                    return
+                }
             }
         }
 
         fetchGroups()
             .then(async (data) => {
-                window['groups'] = ((await data.json())['response'])
-                setOptions(window['groups']);
+                window['groups'] = (await data.json())['response']
+                if (Array.isArray(window['groups'])) {
+                    setOptions(window['groups']);
+                } else {
+                    setActive("error")
+                }
             })
             .catch((error) => {
-                openAnyError(snackbar, setSnackbar)
+                setOptions(window['groups'])
+                setActive("error")
                 console.log(error)
             });
     }, [])
@@ -66,7 +72,7 @@ export const GroupSch = () => {
     const [result, setResult] = React.useState(<div></div>);
     useEffect(() => {
         setResultStory('load')
-        setResult(<GetGroupSchedule group={group} activePanel={selected} date={format(selectedDate, 'DD.MM.YYYY')} week={selectedDate.getWeek()}/>);
+        setResult(<GetGroupSchedule group={group} activePanel={selected} date={format(selectedDate, 'DD.MM.YYYY')} week={selectedDate.getWeek()} year={selectedDate.getFullYear()}/>);
     }, [selectedDate || selected, group]);
 
     const [shown, setShown] = React.useState(false);
@@ -84,7 +90,7 @@ export const GroupSch = () => {
     const onRefresh = () => {
         setFetching(true);
         setResultStory("load")
-        setResult(<GetGroupSchedule group={group} activePanel={selected} date={format(selectedDate, 'DD.MM.YYYY')} week={selectedDate.getWeek()}/>);
+        setResult(<GetGroupSchedule group={group} activePanel={selected} date={format(selectedDate, 'DD.MM.YYYY')} week={selectedDate.getWeek()} year={selectedDate.getFullYear()}/>);
     }
 
     useEffect(() => {
@@ -92,6 +98,7 @@ export const GroupSch = () => {
         setFetching(false);
     }, [result])
 
+    const [active, setActive] = React.useState("main");
     return (
         <PullToRefresh onRefresh={onRefresh} isFetching={fetching} style={{height: '100%'}}>
             <Epic activeStory={activeView} style={{padding: '0'}}>
@@ -103,24 +110,34 @@ export const GroupSch = () => {
                                 before={<Icon16CancelCircleOutline/>}
                         >{config.buttons.close}</Button>
                     </div>
-                    <Search value={search} onChange={onChange} after={null} />
-                    {thematicsFiltered.length > 0 &&
-                        thematicsFiltered.map((option) =>
-                            <Cell
-                                style={{padding: '0 var(--vkui--size_base_padding_horizontal--regular)'}}
-                                key={option.value}
-                                onClick={() => {
-                                    setGroup(option.value)
-                                    setGroupName(option.label)
-                                    setActiveView('main')
-                                }}
-                                after={
-                                    option.value === group ? <Icon24Done fill="var(--vkui--color_icon_accent)" /> : null
-                                }
-                            >{option.label}</Cell>
-                        )
-                    }
-                    {thematicsFiltered.length === 0 && <Footer>{config.texts.NotFound}</Footer>}
+                    <Epic activeStory={active}>
+                        <Panel id="error">
+                            <FormStatus mode='error' header='Произошла ошибка' style={{
+                                margin: 'var(--vkui--size_base_padding_vertical--regular) var(--vkui--size_base_padding_horizontal--regular)', padding: '0',
+                                justifyContent: 'center', alignItems: 'center', flex: '1'
+                            }}>{config.errors.FetchGroupsOrTeachersErr}</FormStatus>
+                        </Panel>
+                        <Panel id="main">
+                            <Search value={search} onChange={onChange} after={null} />
+                            {thematicsFiltered.length > 0 &&
+                                thematicsFiltered.map((option) =>
+                                    <Cell
+                                        style={{padding: '0 var(--vkui--size_base_padding_horizontal--regular)'}}
+                                        key={option.value}
+                                        onClick={() => {
+                                            setGroup(option.value)
+                                            setGroupName(option.label)
+                                            setActiveView('main')
+                                        }}
+                                        after={
+                                            option.value === group ? <Icon24Done fill="var(--vkui--color_icon_accent)" /> : null
+                                        }
+                                    >{option.label}</Cell>
+                                )
+                            }
+                            {thematicsFiltered.length === 0 && <Footer>{config.texts.NotFound}</Footer>}
+                        </Panel>
+                    </Epic>
                 </Group>
                 <Group id='main' separator='hide' mode='plain'>
                     <div style={{display: 'flex', flexDirection: 'row', flexWrap: 'nowrap', alignItems: 'center', justifyContent: 'space-between'}}>
@@ -168,7 +185,6 @@ export const GroupSch = () => {
                             <Spinner size="large" style={{margin: '10px 0'}}/>
                         </Group>
                     </Epic>
-                    {snackbar}
                 </Group>
             </Epic>
         </PullToRefresh>
