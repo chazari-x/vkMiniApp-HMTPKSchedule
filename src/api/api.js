@@ -84,6 +84,8 @@ export function generateInfo() {
             window['groupOrTeacher'] = {"group": "", "teacher": ""}
         }
     }
+
+    window["groupOrTeacherTemp"] = {"group": "", "teacher": ""}
 }
 
 export async function fetchGroupOrTeacher() {
@@ -134,5 +136,6 @@ export async function fetchGroupOrTeacher() {
         }
     }
 
+    window['groupOrTeacherTemp'] = window['groupOrTeacher']
     return window['groupOrTeacher']
 }

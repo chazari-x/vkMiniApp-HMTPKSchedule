@@ -6,7 +6,7 @@ import {
     LocaleProvider, PullToRefresh, Snackbar, Spinner, Tooltip, TooltipContainer,
 } from "@vkontakte/vkui";
 import {
-    Icon16CalendarOutline,
+    Icon16CalendarOutline, Icon16CancelCircle,
     Icon16DoneCircle,
     Icon16GearOutline,
     Icon28CheckCircleOutline, Icon28ErrorCircleOutline
@@ -21,6 +21,10 @@ import config from "../../etc/config.json";
 import {updateGroupOrTeacher} from "../../api/api";
 
 export const MySch = () => {
+    useEffect(() => {
+        window['groupOrTeacherTemp'] = window['groupOrTeacher']
+    }, [])
+
     const [tooltip4, setTooltip4] = React.useState( () => window["tooltips"][4]);
     const [tooltip5, setTooltip5] = React.useState(() => window["tooltips"][5]);
     const [tooltip6, setTooltip6] = React.useState(() => window["tooltips"][6]);
@@ -152,20 +156,20 @@ export const MySch = () => {
                 <Group id="settings" separator="hide" mode='plain' style={{minHeight: 'calc(100vh - var(--vkui--size_panel_header_height--regular)*2)'}}>
                     <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'flex-end'}}>
                         <TooltipContainer fixed style={{zIndex: 1}}>
-                            <Button appearance='positive' mode='outline' style={{
-                                margin: '0 var(--vkui--size_base_padding_horizontal--regular)',
+                            <Button appearance={window["groupOrTeacher"] === window["groupOrTeacherTemp"] ? 'negative' : 'positive'} mode='outline' style={{
+                                margin: '0 var(--vkui--size_base_padding_horizontal--regular) var(--vkui--size_base_padding_vertical--regular)',
                                 width: 'max-content'
                             }} before={<Tooltip
                                 style={{textAlign: 'center'}}
                                 text={config.tooltips.tooltip4}
                                 isShown={tooltip4&&!disabledExitButton} onClose={() => update(4, setTooltip4)}
                             >
-                                <Icon16DoneCircle/>
+                                {window["groupOrTeacher"] === window["groupOrTeacherTemp"] ? <Icon16CancelCircle/> : <Icon16DoneCircle/>}
                             </Tooltip>} onClick={() => {
                                 setActiveStory('main')
                                 updateGroupOrTeacher(openSuccess, openError).then().catch()
                             }} disabled={disabledExitButton}>
-                                {config.buttons.saveAndExit}
+                                {window["groupOrTeacher"] === window["groupOrTeacherTemp"] ? config.buttons.close : config.buttons.saveAndClose}
                             </Button>
                         </TooltipContainer>
                     </div>

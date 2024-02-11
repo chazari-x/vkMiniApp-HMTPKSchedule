@@ -37,7 +37,7 @@
   "buttons": {
     "clear": "Очистить",
     "settings": "Настройки",
-    "saveAndExit": "Сохранить и выйти",
+    "saveAndClose": "Сохранить и закрыть",
     "close": "Закрыть",
     "selectGroup": "Выберите группу",
     "selectTeacher": "Преподаватель",

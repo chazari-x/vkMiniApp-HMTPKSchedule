@@ -28,12 +28,18 @@ export const Settings = ({setDisabledExitButton}) => {
     const updateGroupOrTeacherTemp = (e) => {
         window['groupOrTeacherTemp'] = e
         setGroupOrTeacherTemp(e)
+        setTimeout(() => {
+            if (window['groupOrTeacherTemp']['group'] !== "" || window['groupOrTeacherTemp']['teacher'] !== "") {
+                setDisabledExitButton(false)
+            }
+        }, 100)
+
     };
 
     let [group, setGroup] = React.useState("")
     const onGroupChange = (e) => {
+        setDisabledExitButton(true)
         updateGroupOrTeacherTemp({"group": e.target.value, "teacher": ""})
-        setDisabledExitButton(false)
         setGroup(e.target.value);
         setTeacher(undefined);
     };
@@ -73,8 +79,8 @@ export const Settings = ({setDisabledExitButton}) => {
 
     let [teacher, setTeacher] = React.useState("");
     const onTeacherChange = (e) => {
+        setDisabledExitButton(true)
         updateGroupOrTeacherTemp({"group": "", "teacher": e.target.value})
-        setDisabledExitButton(false)
         setTeacher(e.target.value);
         setGroup(undefined);
     };
@@ -114,6 +120,10 @@ export const Settings = ({setDisabledExitButton}) => {
     let [menu, setMenu] = React.useState("none")
     const onMenuChange = (e) => {
         setMenu(e.target.value)
+        updateGroupOrTeacherTemp({"group": "", "teacher": ""})
+        setGroup("")
+        setTeacher("")
+        setDisabledExitButton(true)
     }
 
     useEffect(() => {
@@ -134,7 +144,6 @@ export const Settings = ({setDisabledExitButton}) => {
         }
 
         fetchGroupOrTeacher().then(_ => {
-            window['groupOrTeacherTemp'] = window['groupOrTeacher']
             setGroupOrTeacherTemp(window['groupOrTeacherTemp'])
             if (window['groupOrTeacherTemp'] !== null) {
                 if (window['groupOrTeacherTemp']['group'] !== "") {

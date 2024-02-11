@@ -113,15 +113,24 @@ export const App = () => {
 								</Panel>
 								<Panel id='main'>
 									<PanelHeader
+										style={{
+											position: 'fixed',
+											background: 'var(--vkui--color_background_content)',
+											width: '100vw'
+										}}
 										before={<Button
 											appearance='accent-invariable' mode='secondary' size='s'
 											onClick={toggleContext} before={<Icon28Menu/>}
 											style={{marginLeft: '10px', padding: 0}} />}
-										separator='none'
+										separator={false}
 									>
 										{Panels.has(mode) ? Panels.get(mode).value : 'ХМТПК Расписание'}
 									</PanelHeader>
-									<PanelHeaderContext opened={contextOpened} onClose={toggleContext}>
+									<PanelHeaderContext opened={contextOpened} onClose={toggleContext}
+										style={platform === Platform.VKCOM ?{
+											maxWidth: '95vw'
+										} : null}
+									>
 										{PanelsKeys.map((key) => (
 											<SimpleCell
 												key={key} before={Panels.get(key).ico} onClick={select} data-mode={key}
@@ -138,7 +147,7 @@ export const App = () => {
 									<Epic id='updateGroupOrTeacher' activeStory={mode}
 										  style={{
 											  height: 'calc(100vh - var(--vkui--size_panel_header_height--regular))',
-											  padding: '0'
+											  padding: 'calc(var(--vkui--size_panel_header_height--regular)) 0 0'
 										  }}>
 										{PanelsKeys.map((key) => (
 											<Panel key={key} id={key} hidden={!(mode === key)}>
