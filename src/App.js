@@ -156,7 +156,8 @@ export const App = () => {
 													style={{
 														minHeight: 'calc(100vh - var(--vkui--size_panel_header_height--regular) - var(--vkui--size_base_padding_vertical--regular)*2)',
 														padding: 'var(--vkui--size_base_padding_vertical--regular) 0',
-														backgroundColor: 'var(--vkui--color_background_content)'}}
+														backgroundColor: 'var(--vkui--color_background_content)'
+													}}
 												>
 													{Panels.get(key).element}
 												</Group>
