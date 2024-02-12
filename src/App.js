@@ -105,7 +105,7 @@ export const App = () => {
 											backgroundColor: 'var(--vkui--color_background_content)',
 											display: 'flex',
 											alignItems: 'center',
-											height: '100vh'
+											height: 'calc(100vh - var(--vkui--size_base_padding_vertical--regular))'
 										}}
 									>
 										<Spinner size="large" style={{margin: '10px 0'}}/>
