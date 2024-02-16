@@ -1,37 +1,14 @@
 import React from "react";
 import config from "../etc/config.json";
-import {Group, HorizontalScroll, Snackbar, Tabs, TabsItem, Tooltip, TooltipContainer} from "@vkontakte/vkui";
-import {Icon28ErrorCircleOutline} from "@vkontakte/icons";
+import {Group, HorizontalScroll, Tabs, TabsItem, Tooltip, TooltipContainer} from "@vkontakte/vkui";
 import {format} from "@vkontakte/vkui/dist/lib/date";
 import {updateTooltips} from "../api/api";
-
-export function toDataURL(url, callback) {
-    const xhr = new XMLHttpRequest();
-    xhr.onload = function() {
-        const reader = new FileReader();
-        reader.onloadend = function() {
-            callback(reader.result);
-        }
-        reader.readAsDataURL(xhr.response);
-    };
-    xhr.open('GET', url);
-    xhr.responseType = 'blob';
-    xhr.send();
-}
 
 export const capitalizeFirstLetter = (str) => {
     let chars = str.split('');
     chars[0] = chars[0].toUpperCase();
     return chars.join('');
 }
-
-export const openAnyError = (snackbar, setSnackbar) => {
-    if (snackbar) return;
-    setSnackbar(<Snackbar onClose={() => setSnackbar(null)}
-                          before={<Icon28ErrorCircleOutline fill="var(--vkui--color_icon_negative)"/>}
-        >Произошла ошибка</Snackbar>,
-    );
-};
 
 export const Dates = [
     {id: 0, value: 'ПН'},

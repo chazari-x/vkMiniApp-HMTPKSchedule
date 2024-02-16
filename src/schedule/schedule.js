@@ -142,7 +142,10 @@ const renderBlock = (res, elementID) => {
                 ? <Link
                     href={res[0][dayNum]['href']}
                     target="_blank"
-                    style={{flex: '1', margin: '0 var(--vkui--size_base_padding_horizontal--regular)'}}>
+                    style={{
+                        flex: '1', margin: '0 var(--vkui--size_base_padding_horizontal--regular)',
+                        padding: 'var(--vkui--size_base_padding_vertical--regular) 0'
+                }}>
                     <Button appearance='accent-invariable' align="center" mode="outline" stretched={true}
                             after={<Icon24ExternalLinkOutline width={16} height={16} />}
                             before={<Icon24CalendarOutline width={16} height={16} />}
@@ -150,10 +153,9 @@ const renderBlock = (res, elementID) => {
                 </Link> : null) : null}
         </CardGrid>)
     } catch (e) {}
-
 }
 
-const RenderSchedule = ({json, dayNum, err}) => {
+const RenderSchedule = ({ json, dayNum, err }) => {
     if (err !== null) {
         return <FormStatus mode='error' header='Произошла ошибка' style={{
             margin: 'var(--vkui--size_base_padding_vertical--regular) var(--vkui--size_base_padding_horizontal--regular)', padding: '0',
@@ -165,57 +167,91 @@ const RenderSchedule = ({json, dayNum, err}) => {
         return <CardGrid size='m' key='none' style={{
             margin: 'var(--vkui--size_base_padding_vertical--regular) var(--vkui--size_base_padding_horizontal--regular)', padding: '0',
             justifyContent: 'center', alignItems: 'center', textAlign: 'center', width: '100%'
-        }}><ContentCard mode='outline-tint' header={config.texts.NoClasses} style={{margin: '0', flex: '1', background: 'none'}}/></CardGrid>
+        }}><ContentCard mode='outline-tint' header={config.texts.NoClasses} style={{ margin: '0', flex: '1', background: 'none' }} /></CardGrid>
     }
 
-    let i = 0
+    // Объединение уроков с одинаковым num и name
+    const mergedLessons = json[dayNum]['lesson'].reduce((acc, lesson) => {
+        const existingLesson = acc.find(item => item.num === lesson.num && item.name === lesson.name);
+        if (existingLesson) {
+            existingLesson.subgroups.push({
+                teacher: lesson.teacher,
+                room: lesson.room,
+                location: lesson.location,
+                group: lesson.group,
+                subgroup: lesson.subgroup
+            });
+        } else {
+            acc.push({
+                num: lesson.num,
+                name: lesson.name,
+                time: lesson.time,
+                subgroups: [{
+                    teacher: lesson.teacher,
+                    room: lesson.room,
+                    location: lesson.location,
+                    group: lesson.group,
+                    subgroup: lesson.subgroup
+                }]
+            });
+        }
+        return acc;
+    }, []);
+
     const color = '#8a8a8a'
-    return json[dayNum]['lesson'].map(lesson => {
-        i++
-
+    return mergedLessons.map((mergedLesson, index) => {
         return (
-            <CardGrid size='m' key={`lesson-${lesson['num']}-num-${i}`} style={{
-                margin: '0px 4px', padding: '0px', justifyContent: 'center', alignItems: 'center', width: '100%'
-            }}>
-                <Group separator="hide" mode="plain" style={{flex: '0 0 4em', textAlign: 'center', background: 'none'}}>
-                    {lesson['time'].replaceAll('- ', '')}
-                </Group>
-                <Div style={{flex: '1', padding: 'var(--vkui--size_base_padding_vertical--regular) 0'}}>
-                    <Div style={{
-                        padding: '0 var(--vkui--size_base_padding_horizontal--regular) 2px 0',
-                        textOverflow: 'ellipsis', fontWeight: 'var(--vkui--font_weight_accent2)',
-                        marginLeft: 'var(--vkui--size_base_padding_horizontal--regular)'
-                    }}>{lesson['name']}</Div>
-
-                    {lesson['teacher'] !== '' && <Div style={{
-                        padding: '2px 0', marginLeft: 'var(--vkui--size_base_padding_horizontal--regular)',
-                        display: 'flex', alignItems: 'center', fontSize: 'var(--vkui--font_headline1--font_size--compact)'
-                    }}><Icon28User width={16} height={16} fill={color}/>{`${lesson['teacher']}`}</Div>}
-
-                    {lesson['group'] !== '' && <Div style={{
-                        padding: '2px 0', marginLeft: 'var(--vkui--size_base_padding_horizontal--regular)',
-                        display: 'flex', alignItems: 'center', fontSize: 'var(--vkui--font_headline1--font_size--compact)',
+            <React.Fragment key={`lesson-${mergedLesson['num']}-num-${index}`}>
+                <CardGrid size='m' style={{
+                    margin: '0px 4px', padding: '0px', justifyContent: 'center', alignItems: 'flex-start', width: '100%'
+                }}>
+                    <Group separator="hide" mode="plain" style={{
+                        flex: '0 0 4em', textAlign: 'center', background: 'none',
+                        padding: 'var(--vkui--size_base_padding_vertical--regular) 0'
                     }}>
-                        <div style={{marginRight: '4px'}}>{<Icon28Users width={16} height={16} fill={color}/>}</div>
-                        <div>{lesson['group']}</div>
-                        <div style={{color: color, marginLeft: '4px'}}>{lesson['subgroup'] !== '' && ` / подгр. ${lesson['subgroup']}`}</div>
-                    </Div>}
-
-                    {lesson['group'] === '' && lesson['subgroup'] !== "" &&
+                        {mergedLesson['time'].replaceAll('- ', '')}
+                    </Group>
+                    <Div style={{ flex: '1', padding: 'var(--vkui--size_base_padding_vertical--regular) 0' }}>
                         <Div style={{
-                            padding: '2px 0', marginLeft: 'var(--vkui--size_base_padding_horizontal--regular)',
-                            fontSize: 'var(--vkui--font_headline1--font_size--compact)', color: color
-                        }}>{`подгр. ${lesson['subgroup']}`}</Div>
-                    }
+                            padding: '0 var(--vkui--size_base_padding_horizontal--regular) 2px 0',
+                            textOverflow: 'ellipsis', fontWeight: 'var(--vkui--font_weight_accent2)',
+                            marginLeft: 'var(--vkui--size_base_padding_horizontal--regular)'
+                        }}>{mergedLesson['name']}</Div>
 
-                    {(lesson['room'] !== "" || lesson['location'] !== "") &&
-                        <Div style={{
-                            padding: '2px 0', marginLeft: 'var(--vkui--size_base_padding_horizontal--regular)',
-                            fontSize: 'var(--vkui--font_headline1--font_size--compact)', display: 'flex', color: color
-                        }}>{`ауд. ${lesson['room']}`}{lesson['location'] !== "" && ` / ${lesson['location']}`}</Div>
-                    }
-                </Div>
-            </CardGrid>
+                        {mergedLesson.subgroups.map((subgroup, subIndex) => (
+                            <React.Fragment key={`subgroup-${index}-${subIndex}`}>
+                                {subgroup['teacher'] !== '' && <Div style={{
+                                    padding: '6px 0 2px 0', marginLeft: 'var(--vkui--size_base_padding_horizontal--regular)',
+                                    display: 'flex', alignItems: 'center', fontSize: 'var(--vkui--font_headline1--font_size--compact)'
+                                }}><Icon28User width={16} height={16} fill={color} />{`${subgroup['teacher']}`}</Div>}
+
+                                {subgroup['group'] !== '' && <Div style={{
+                                    padding: '2px 0', marginLeft: 'var(--vkui--size_base_padding_horizontal--regular)',
+                                    display: 'flex', alignItems: 'center', fontSize: 'var(--vkui--font_headline1--font_size--compact)',
+                                }}>
+                                    <div style={{ marginRight: '4px' }}>{<Icon28Users width={16} height={16} fill={color} />}</div>
+                                    <div>{subgroup['group']}</div>
+                                    <div style={{ color: color, marginLeft: '4px' }}>{subgroup['subgroup'] !== '' && ` / подгр. ${subgroup['subgroup']}`}</div>
+                                </Div>}
+
+                                {subgroup['group'] === '' && subgroup['subgroup'] !== "" &&
+                                    <Div style={{
+                                        padding: '2px 0', marginLeft: 'var(--vkui--size_base_padding_horizontal--regular)',
+                                        fontSize: 'var(--vkui--font_headline1--font_size--compact)', color: color
+                                    }}>{`подгр. ${subgroup['subgroup']}`}</Div>
+                                }
+
+                                {(subgroup['room'] !== "" || subgroup['location'] !== "") &&
+                                    <Div style={{
+                                        padding: '2px 0', marginLeft: 'var(--vkui--size_base_padding_horizontal--regular)',
+                                        fontSize: 'var(--vkui--font_headline1--font_size--compact)', display: 'flex', color: color
+                                    }}>{`ауд. ${subgroup['room']}`}{subgroup['location'] !== "" && ` / ${subgroup['location']}`}</Div>
+                                }
+                            </React.Fragment>
+                        ))}
+                    </Div>
+                </CardGrid>
+            </React.Fragment>
         )
     })
 }

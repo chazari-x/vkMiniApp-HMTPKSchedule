@@ -101,11 +101,11 @@ export const App = () => {
 									<Group
 										separator="hide" mode='plain'
 										style={{
-											padding: 'var(--vkui--size_base_padding_vertical--regular) 0',
+											padding: '0',
 											backgroundColor: 'var(--vkui--color_background_content)',
 											display: 'flex',
 											alignItems: 'center',
-											height: 'calc(100vh - var(--vkui--size_base_padding_vertical--regular))'
+											height: '100vh'
 										}}
 									>
 										<Spinner size="large" style={{margin: '10px 0'}}/>
@@ -122,7 +122,6 @@ export const App = () => {
 											appearance='accent-invariable' mode='secondary' size='s'
 											onClick={toggleContext} before={<Icon28Menu/>}
 											style={{marginLeft: '10px', padding: 0}} />}
-										separator={false}
 									>
 										{Panels.has(mode) ? Panels.get(mode).value : 'ХМТПК Расписание'}
 									</PanelHeader>
