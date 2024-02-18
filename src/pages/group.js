@@ -54,16 +54,17 @@ export const GroupSch = () => {
         }
 
         fetchGroups()
-            .then(async (data) => {
-                window['groups'] = (await data.json())['response']
+            .then(res => {
                 if (Array.isArray(window['groups'])) {
-                    setOptions(window['groups']);
+                    setOptions(window['groups'])
                 } else {
+                    setError(res[1])
                     setActive("error")
                 }
             })
             .catch((error) => {
                 setOptions(window['groups'])
+                setError(config.errors.FetchGroupsOrTeachersErr)
                 setActive("error")
                 console.log(error)
             });
@@ -98,6 +99,7 @@ export const GroupSch = () => {
         setFetching(false);
     }, [result])
 
+    const [error, setError] = React.useState(config.errors.FetchGroupsOrTeachersErr)
     const [active, setActive] = React.useState("main");
     return (
         <PullToRefresh onRefresh={onRefresh} isFetching={fetching} style={{height: '100%'}}>
@@ -115,7 +117,7 @@ export const GroupSch = () => {
                             <FormStatus mode='error' header='Произошла ошибка' style={{
                                 margin: 'var(--vkui--size_base_padding_vertical--regular) var(--vkui--size_base_padding_horizontal--regular)', padding: '0',
                                 justifyContent: 'center', alignItems: 'center', flex: '1'
-                            }}>{config.errors.FetchGroupsOrTeachersErr}</FormStatus>
+                            }}>{error}</FormStatus>
                         </Panel>
                         <Panel id="main">
                             <Search value={search} onChange={onChange} after={null} />

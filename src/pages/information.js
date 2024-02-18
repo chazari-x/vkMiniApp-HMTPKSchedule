@@ -23,7 +23,7 @@ export const Information = () => {
 				</div>
 				<div style={{marginBottom: 'var(--vkui--size_base_padding_vertical--regular)'}}>
 					<Paragraph>
-						<Link href={config.group.href} target="_blank">
+						<Link href={window['app'] === 'ok' ? config.group.hrefs.ok : config.group.hrefs.vk} target="_blank">
 							{config.group.name} <Icon24ExternalLinkOutline width={16} height={16}/>
 						</Link> {config.texts.Paragraph5}
 					</Paragraph>

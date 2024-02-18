@@ -170,7 +170,6 @@ const RenderSchedule = ({ json, dayNum, err }) => {
         }}><ContentCard mode='outline-tint' header={config.texts.NoClasses} style={{ margin: '0', flex: '1', background: 'none' }} /></CardGrid>
     }
 
-    // Объединение уроков с одинаковым num и name
     const mergedLessons = json[dayNum]['lesson'].reduce((acc, lesson) => {
         const existingLesson = acc.find(item => item.num === lesson.num && item.name === lesson.name);
         if (existingLesson) {

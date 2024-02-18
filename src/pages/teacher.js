@@ -54,18 +54,20 @@ export const TeacherSch = () => {
         }
 
         fetchTeachers()
-            .then(async (data) => {
-                window['teachers'] = (await data.json())['response']
+            .then(res => {
                 if (Array.isArray(window['teachers'])) {
-                    setOptions(window['teachers']);
+                    setOptions(window['teachers'])
                 } else {
+                    setError(res[1])
                     setActive("error")
                 }
-            }).catch((error) => {
+            })
+            .catch((error) => {
                 setOptions(window['teachers'])
+                setError(config.errors.FetchGroupsOrTeachersErr)
                 setActive("error")
                 console.log(error)
-            });
+            })
     }, [])
 
     const [result, setResult] = React.useState(<div></div>);
@@ -97,6 +99,7 @@ export const TeacherSch = () => {
         setFetching(false);
     }, [result])
 
+    const [error, setError] = React.useState(config.errors.FetchGroupsOrTeachersErr)
     const [active, setActive] = React.useState("main");
     return (
         <PullToRefresh onRefresh={onRefresh} isFetching={fetching} style={{height: '100%'}}>
@@ -114,7 +117,7 @@ export const TeacherSch = () => {
                             <FormStatus mode='error' header='Произошла ошибка' style={{
                                 margin: 'var(--vkui--size_base_padding_vertical--regular) var(--vkui--size_base_padding_horizontal--regular)', padding: '0',
                                 justifyContent: 'center', alignItems: 'center', flex: '1'
-                            }}>{config.errors.FetchGroupsOrTeachersErr}</FormStatus>
+                            }}>{error}</FormStatus>
                         </Panel>
                         <Panel id="main">
                             <Search value={search} onChange={onChange} after={null} />

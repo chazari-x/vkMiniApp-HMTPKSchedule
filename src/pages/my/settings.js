@@ -61,20 +61,22 @@ export const Settings = ({setDisabledExitButton}) => {
 
         setGroupFetching(true);
         fetchGroups()
-            .then(async (data) => {
-                window['groups'] = (await data.json())['response']
+            .then(res => {
                 if (Array.isArray(window['groups'])) {
-                    setGroupOptions(window['groups']);
+                    setGroupOptions(window['groups'])
                 } else {
+                    setError(res[1])
                     setActive("error")
                 }
-                setGroupFetching(false);
-            }).catch((error) => {
+                setGroupFetching(false)
+            })
+            .catch((error) => {
                 setGroupOptions(window['groups'])
-                setGroupFetching(false);
+                setGroupFetching(false)
+                setError(config.errors.FetchGroupsOrTeachersErr)
                 setActive("error")
                 console.log(error)
-            }).catch();
+            });
     };
 
     let [teacher, setTeacher] = React.useState("");
@@ -101,20 +103,22 @@ export const Settings = ({setDisabledExitButton}) => {
 
         setTeacherFetching(true);
         fetchTeachers()
-            .then(async (data) => {
-                window['teachers'] = (await data.json())['response']
+            .then(res => {
                 if (Array.isArray(window['teachers'])) {
-                    setTeacherOptions(window['teachers']);
+                    setTeacherOptions(window['teachers'])
                 } else {
+                    setError(res[1])
                     setActive("error")
                 }
-                setTeacherFetching(false);
-            }).catch((error) => {
+                setTeacherFetching(false)
+            })
+            .catch((error) => {
                 setTeacherOptions(window['teachers'])
-                setTeacherFetching(false);
+                setTeacherFetching(false)
+                setError(config.errors.FetchGroupsOrTeachersErr)
                 setActive("error")
                 console.log(error)
-            }).catch();
+            })
     };
 
     let [menu, setMenu] = React.useState("none")
@@ -168,8 +172,8 @@ export const Settings = ({setDisabledExitButton}) => {
     const teacherName = "Преподаватель"
     const groupName = "Студент"
 
+    const [error, setError] = React.useState(config.errors.FetchGroupsOrTeachersErr)
     const [active, setActive] = React.useState("main");
-
     return <Group id='settings-menu' separator='hide' mode='plain' style={{height: 'calc(100vh - var(--vkui--size_panel_header_height--regular)*4)'}}>
         <CardGrid size="l" style={{height: '100%', display: 'flex', margin: '0', padding: '0'}}>
             <Epic activeStory={active} style={{padding: 0, margin: 0}}>
@@ -177,7 +181,7 @@ export const Settings = ({setDisabledExitButton}) => {
                     <FormStatus mode='error' header='Произошла ошибка' style={{
                         margin: 'var(--vkui--size_base_padding_vertical--regular) var(--vkui--size_base_padding_horizontal--regular)', padding: '0',
                         justifyContent: 'center', alignItems: 'center', flex: '1'
-                    }}>{config.errors.FetchGroupsOrTeachersErr}</FormStatus>
+                    }}>{error}</FormStatus>
                 </Panel>
                 <Panel id="main" style={{padding: 0, margin: 0}}>
                     <TooltipContainer
@@ -258,7 +262,7 @@ export const Settings = ({setDisabledExitButton}) => {
                             }}>
                                 <div style={{marginBottom: '10px'}}>
                                     <Paragraph>
-                                        {config.texts.Paragraph1} <Link href={config.group.href} target="_blank">{config.group.name}
+                                        {config.texts.Paragraph1} <Link href={window['app'] === 'ok' ? config.group.hrefs.ok : config.group.hrefs.vk} target="_blank">{config.group.name}
                                         <Icon24ExternalLinkOutline width={16} height={16}/></Link>.
                                     </Paragraph>
                                 </div>

@@ -3,8 +3,11 @@
     "href": "https://hmtpksch.chazari.ru"
   },
   "group": {
-    "name": "Разработчики: chazari.ru",
-    "href": "https://vk.com/chazariru"
+    "name": "Разработчики",
+    "hrefs": {
+      "vk": "https://vk.com/chazariru",
+      "ok": "https://ok.ru/chazari"
+    }
   },
   "errors": {
     "APINotWorking": "Ошибка выполнения запроса к ХМТПК API. Повторите попытку позже, если проблема не решится, сообщите разработчикам.",

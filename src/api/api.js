@@ -44,11 +44,35 @@ export async function fetchSchedule(href, activePanel, week, type, year) {
 }
 
 export async function fetchGroups() {
-    return fetch(config.api.href + '/groups', {method: "POST", body: token()})
+    const response = await fetch(config.api.href + '/groups', {method: "POST", body: token()})
+
+    switch (response.status) {
+        case 200:
+            window['groups'] = (await response.json())['response']
+            return [window['groups'], null]
+        case 204:
+            return [null, config.errors.TimeoutExceeded]
+        case 408:
+            return [null, config.errors.RequestsTimeout]
+        default:
+            return [null, config.errors.APINotWorking]
+    }
 }
 
 export async function fetchTeachers() {
-    return fetch(config.api.href + '/teachers', {method: "POST", body: token()})
+    const response = await fetch(config.api.href + '/teachers', {method: "POST", body: token()})
+
+    switch (response.status) {
+        case 200:
+            window['teachers'] = (await response.json())['response']
+            return [window['teachers'], null]
+        case 204:
+            return [null, config.errors.TimeoutExceeded]
+        case 408:
+            return [null, config.errors.RequestsTimeout]
+        default:
+            return [null, config.errors.APINotWorking]
+    }
 }
 
 export async function updateTooltips() {
@@ -137,5 +161,34 @@ export async function fetchGroupOrTeacher() {
     }
 
     window['groupOrTeacherTemp'] = window['groupOrTeacher']
+
+    client()
+
     return window['groupOrTeacher']
+}
+
+function client() {
+    bridge.send('VKWebAppGetClientVersion').then((data) => {
+        if (data['app']) {
+            window['app'] = data['app']
+        } else if (data['environment']) {
+            window['app'] = data['environment']
+        } else {
+            window['app'] = 'vk?'
+        }
+
+        console.log(`app: ${window['app']}`)
+
+        if (window['app'] !== 'ok') {
+            ad().then().catch((error) => console.log(error))
+        }
+    }).catch(error => console.log(error));
+}
+
+async function ad() {
+    setTimeout(() => {
+        bridge.send('VKWebAppShowBannerAd', {
+            banner_location: 'bottom',
+        }).then().catch((error) => console.log(error));
+    }, 3000)
 }
