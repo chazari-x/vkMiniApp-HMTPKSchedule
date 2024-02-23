@@ -2,8 +2,13 @@ import config from "../etc/config.json";
 import {Buffer} from 'buffer/';
 import bridge from "@vkontakte/vk-bridge";
 
-function token() {
-    return Buffer.from(window["queryParams"].substring(1)).toString('hex')
+async function token() {
+    let data = await bridge.send('VKWebAppCreateHash', {payload: Buffer.from(window["queryParams"].substring(1)).toString('hex')})
+    if (data.sign) {
+        return JSON.stringify(data)
+    }
+
+    return ""
 }
 
 export async function fetchSchedule(href, activePanel, week, type, year) {
@@ -21,7 +26,12 @@ export async function fetchSchedule(href, activePanel, week, type, year) {
         }
     }
 
-    const response = await fetch(config.api.href + href, {method: "POST", body: token()})
+    let t = await token()
+    if (t === "") {
+        return [null, config.errors.Token, activePanel]
+    }
+
+    const response = await fetch(config.api.href + href, {method: "POST", body: t})
 
     switch (response.status) {
         case 200:
@@ -44,7 +54,12 @@ export async function fetchSchedule(href, activePanel, week, type, year) {
 }
 
 export async function fetchGroups() {
-    const response = await fetch(config.api.href + '/groups', {method: "POST", body: token()})
+    let t = await token()
+    if (t === "") {
+        return [null, config.errors.Token]
+    }
+
+    const response = await fetch(config.api.href + '/groups', {method: "POST", body: t})
 
     switch (response.status) {
         case 200:
@@ -60,7 +75,12 @@ export async function fetchGroups() {
 }
 
 export async function fetchTeachers() {
-    const response = await fetch(config.api.href + '/teachers', {method: "POST", body: token()})
+    let t = await token()
+    if (t === "") {
+        return [null, config.errors.Token]
+    }
+
+    const response = await fetch(config.api.href + '/teachers', {method: "POST", body: t})
 
     switch (response.status) {
         case 200:

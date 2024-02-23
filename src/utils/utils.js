@@ -61,14 +61,21 @@ export const Scrollable = ({selectedDate, setSelected, setSelectedDate, selected
                                         setSelectedDate(addDays(selectedDate, -dayNum + i))
                                         setSelected(`${type}${ii.toString()}`)
                                     }}
-                                    style={{textAlign: "center", minWidth: '2.5em', marginLeft: '1px', marginRight: '1px'}}
+                                    style={{
+                                        textAlign: "center",
+                                        minWidth: '2.5em',
+                                        marginLeft: '1px',
+                                        marginRight: '1px'
+                                    }}
                                 >
-                                    <div style={i < 0 || i > 6
+                                    <div style={format(d, 'DD.MM.YYYY') === format(new Date(), 'DD.MM.YYYY')
+                                        ? {color: 'var(--vkui--color_accent_green)', display: 'flex', flexDirection: 'column'}
+                                        : i < 0 || i > 6
                                         ? {display: 'flex', flexDirection: 'column', fontWeight: '200'}
                                         : {color: 'var(--vkui--color_text_primary)', display: 'flex', flexDirection: 'column'}}>
                                         <div>{d.toLocaleDateString("ru", {weekday: "short"}).toUpperCase()}</div>
-                                        {format(d, 'DD.MM.YYYY') === format(new Date(), 'DD.MM.YYYY')
-                                            ? <div style={{borderTop: "solid 1px var(--vkui--color_text_primary)"}}>{d.getDate()}</div>
+                                        {selected === `${type}${i.toString()}`
+                                            ? <div style={{borderTop: "solid 1px var(--vkui--color_accent_gray)"}}>{d.getDate()}</div>
                                             : <div style={{borderTop: "solid 1px #00000000"}}>{d.getDate()}</div>}
                                     </div>
                                 </TabsItem>

@@ -56,7 +56,6 @@ export const Settings = ({setDisabledExitButton}) => {
             } else {
                 setActive("error")
             }
-
         }
 
         setGroupFetching(true);
