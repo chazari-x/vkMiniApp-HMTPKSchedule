@@ -149,7 +149,7 @@ const renderBlock = (res, elementID) => {
                     <Button appearance='accent-invariable' align="center" mode="outline" stretched={true}
                             after={<Icon24ExternalLinkOutline width={16} height={16} />}
                             before={<Icon24CalendarOutline width={16} height={16} />}
-                    >{config.texts.CheckSchedule}</Button>
+                    >{config.texts.CheckSchedule.replace(/&amp;/g, '&')}</Button>
                 </Link> : null) : null}
         </CardGrid>)
     } catch (e) {}
@@ -199,14 +199,20 @@ const RenderSchedule = ({ json, dayNum, err }) => {
 
     const color = '#8a8a8a'
     return mergedLessons.map((mergedLesson, index) => {
+        const c = mergedLesson['subgroups'].some(s => (s.subgroup === window['groupOrTeacher']['subgroup']
+            || s.subgroup === "" || window['groupOrTeacher']['subgroup'] === "1 и 2") || window['page'] !== "my")
+            ? '' : '#8a8a8a'
+
         return (
             <React.Fragment key={`lesson-${mergedLesson['num']}-num-${index}`}>
                 <CardGrid size='m' style={{
-                    margin: '0px 4px', padding: '0px', justifyContent: 'center', alignItems: 'flex-start', width: '100%'
+                    margin: '0px 4px', padding: '0px', justifyContent: 'center', alignItems: 'flex-start', width: '100%',
+                    color: c
                 }}>
                     <Group separator="hide" mode="plain" style={{
                         flex: '0 0 4em', textAlign: 'center', background: 'none',
-                        padding: 'var(--vkui--size_base_padding_vertical--regular) 0'
+                        padding: 'var(--vkui--size_base_padding_vertical--regular) 0',
+                        color: c
                     }}>
                         {mergedLesson['time'].replaceAll('- ', '')}
                     </Group>

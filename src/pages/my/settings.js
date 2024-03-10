@@ -20,28 +20,60 @@ export const Settings = ({setDisabledExitButton}) => {
         window['groupOrTeacherTemp'] = window['groupOrTeacher']
     }, [])
 
+    const subgroups = [
+        {'label': '1 подгруппа', 'value': '1'},
+        {'label': '2 подгруппа', 'value': '2'},
+        {'label': '1 и 2 подгруппы', 'value': '1 и 2'},
+    ]
+
     const [groupOrTeacherTemp, setGroupOrTeacherTemp] = React.useState(() => window['groupOrTeacher'])
     const [tooltip1, setTooltip1] = React.useState( () => window["tooltips"][1]);
     const [tooltip2, setTooltip2] = React.useState(() => window["tooltips"][2]);
     const [tooltip3, setTooltip3] = React.useState(() => window["tooltips"][3]);
+    const [tooltip11, setTooltip11] = React.useState(() => window["tooltips"][11]);
 
     const updateGroupOrTeacherTemp = (e) => {
         window['groupOrTeacherTemp'] = e
         setGroupOrTeacherTemp(e)
         setTimeout(() => {
-            if (window['groupOrTeacherTemp']['group'] !== "" || window['groupOrTeacherTemp']['teacher'] !== "") {
+            if ((window['groupOrTeacherTemp']['group'] !== "" && window['groupOrTeacherTemp']['subgroup'] !== "")
+                || window['groupOrTeacherTemp']['teacher'] !== "") {
                 setDisabledExitButton(false)
             }
         }, 100)
-
     };
+
+    let [subgroup, setSubgroup] = React.useState(() => window['groupOrTeacherTemp']['subgroup']);
+    const onSubgroupChange = (e) => {
+        setDisabledExitButton(true)
+        updateGroupOrTeacherTemp({"group": group, "teacher": teacher, "subgroup": e.target.value})
+        setSubgroup(e.target.value);
+    };
+
+    let [menu, setMenu] = React.useState("none")
+    const onMenuChange = (e) => {
+        setMenu(e.target.value)
+        updateGroupOrTeacherTemp({"group": "", "teacher": "", "subgroup": ""})
+        setGroup("")
+        setTeacher("")
+        setDisabledExitButton(true)
+    }
 
     let [group, setGroup] = React.useState("")
     const onGroupChange = (e) => {
         setDisabledExitButton(true)
-        updateGroupOrTeacherTemp({"group": e.target.value, "teacher": ""})
+        updateGroupOrTeacherTemp({"group": e.target.value, "teacher": "", "subgroup": ""})
         setGroup(e.target.value);
         setTeacher(undefined);
+        setSubgroup("")
+    };
+
+    let [teacher, setTeacher] = React.useState("");
+    const onTeacherChange = (e) => {
+        setDisabledExitButton(true)
+        updateGroupOrTeacherTemp({"group": "", "teacher": e.target.value, "subgroup": ""})
+        setTeacher(e.target.value);
+        setGroup(undefined);
     };
 
     const [groupFetching, setGroupFetching] = React.useState(false);
@@ -78,14 +110,6 @@ export const Settings = ({setDisabledExitButton}) => {
             });
     };
 
-    let [teacher, setTeacher] = React.useState("");
-    const onTeacherChange = (e) => {
-        setDisabledExitButton(true)
-        updateGroupOrTeacherTemp({"group": "", "teacher": e.target.value})
-        setTeacher(e.target.value);
-        setGroup(undefined);
-    };
-
     const [teacherFetching, setTeacherFetching] = React.useState(false);
     const [teacherOptions, setTeacherOptions] = React.useState([]);
     const updateTeachers = () => {
@@ -119,15 +143,6 @@ export const Settings = ({setDisabledExitButton}) => {
                 console.log(error)
             })
     };
-
-    let [menu, setMenu] = React.useState("none")
-    const onMenuChange = (e) => {
-        setMenu(e.target.value)
-        updateGroupOrTeacherTemp({"group": "", "teacher": ""})
-        setGroup("")
-        setTeacher("")
-        setDisabledExitButton(true)
-    }
 
     useEffect(() => {
         if (window['groupOrTeacher'] !== undefined) {
@@ -204,11 +219,7 @@ export const Settings = ({setDisabledExitButton}) => {
                         <Epic activeStory={menu} style={{padding: 'var(--vkui--size_base_padding_vertical--regular) 0 0'}}>
                             <Group id='none' separator="hide" mode='plain'>
                                 <FormItem style={{flex: '1', padding: '0'}}>
-                                    <CustomSelect disabled
-                                                  placeholder="" searchable options={groupOptions} onChange={onGroupChange}
-                                                  value={group} onOpen={groupOptions.length === 0 && updateGroups}
-                                                  fetching={groupFetching}
-                                    />
+                                    <CustomSelect disabled options={[]}/>
                                 </FormItem>
                             </Group>
                             <Group id={groupName} separator="hide" mode='plain'>
@@ -217,7 +228,8 @@ export const Settings = ({setDisabledExitButton}) => {
                                     text={config.tooltips.tooltip2}
                                     isShown={tooltip2 && !tooltip1} onClose={() => {
                                     update(2, setTooltip2)
-                                    if (groupOrTeacherTemp['group'] !== "" || groupOrTeacherTemp['teacher'] !== "") {
+                                    if ((groupOrTeacherTemp['group'] !== "" && groupOrTeacherTemp['subgroup'] !== "")
+                                        || groupOrTeacherTemp['teacher'] !== "") {
                                         setDisabledExitButton(false)
                                     }
                                 }}
@@ -231,6 +243,26 @@ export const Settings = ({setDisabledExitButton}) => {
                                         />
                                     </FormItem>
                                 </Tooltip>
+                                <Tooltip
+                                    style={{textAlign: 'center'}}
+                                    text={config.tooltips.tooltip11}
+                                    isShown={tooltip11 && !tooltip2 && !tooltip1 && groupOrTeacherTemp['group'] !== ""}
+                                    onClose={() => {
+                                    update(11, setTooltip11)
+                                    if ((groupOrTeacherTemp['group'] !== "" && groupOrTeacherTemp['subgroup'] !== "")
+                                        || groupOrTeacherTemp['teacher'] !== "") {
+                                        setDisabledExitButton(false)
+                                    }
+                                }}
+                                >
+                                    <FormItem style={{padding: 'var(--vkui--size_base_padding_vertical--regular) 0 0'}}>
+                                        <CustomSelect
+                                            disabled={groupOrTeacherTemp['group'] === ""}
+                                            placeholder="Выберите подгруппу" options={subgroups}
+                                            onChange={onSubgroupChange} value={subgroup}
+                                        />
+                                    </FormItem>
+                                </Tooltip>
                             </Group>
                             <Group id={teacherName} separator="hide" mode='plain'>
                                 <Tooltip
@@ -238,7 +270,8 @@ export const Settings = ({setDisabledExitButton}) => {
                                     text={config.tooltips.tooltip3}
                                     isShown={tooltip3 && !tooltip1} onClose={() => {
                                     update(3, setTooltip3)
-                                    if (groupOrTeacherTemp['group'] !== "" || groupOrTeacherTemp['teacher'] !== "") {
+                                    if ((groupOrTeacherTemp['group'] !== "" && groupOrTeacherTemp['subgroup'] !== "")
+                                        || groupOrTeacherTemp['teacher'] !== "") {
                                         setDisabledExitButton(false)
                                     }
                                 }}

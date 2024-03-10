@@ -44,6 +44,8 @@ export const GroupSch = () => {
 
     const [options, setOptions] = React.useState([]);
     useEffect(() => {
+        window['page'] = "group"
+
         if (window['groups'] !== undefined) {
             if (Array.isArray(window['groups'])) {
                 if (window['groups'].length > 0) {

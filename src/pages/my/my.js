@@ -23,6 +23,7 @@ import {updateGroupOrTeacher} from "../../api/api";
 export const MySch = () => {
     useEffect(() => {
         window['groupOrTeacherTemp'] = window['groupOrTeacher']
+        window['page'] = "my"
     }, [])
 
     const [tooltip4, setTooltip4] = React.useState( () => window["tooltips"][4]);
@@ -63,10 +64,14 @@ export const MySch = () => {
     const [activeStory, setActiveStory] = React.useState('main');
     const [disabledExitButton, setDisabledExitButton] = React.useState(() => tooltip4);
     useEffect(() => {
-        if (window['groupOrTeacher']['group'] === undefined && window['groupOrTeacher']['teacher'] === undefined) {
+        if ((window['groupOrTeacher']['group'] === undefined
+                && window['groupOrTeacher']['teacher'] === undefined)
+            || window['groupOrTeacher']['subgroup'] === undefined) {
             setActiveStory('settings')
             setDisabledExitButton(true)
-        } else if (window['groupOrTeacher']['group'] === "" && window['groupOrTeacher']['teacher'] === "") {
+        } else if ((window['groupOrTeacher']['group'] === ""
+                && window['groupOrTeacher']['teacher'] === "")
+            || window['groupOrTeacher']['subgroup'] === "") {
             setActiveStory('settings')
             setDisabledExitButton(true)
         }

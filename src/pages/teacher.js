@@ -44,6 +44,8 @@ export const TeacherSch = () => {
 
     const [options, setOptions] = React.useState([]);
     useEffect(() => {
+        window['page'] = "teacher"
+
         if (window['teachers'] !== undefined) {
             if (Array.isArray(window['teachers'])) {
                 if (window['teachers'].length > 0) {

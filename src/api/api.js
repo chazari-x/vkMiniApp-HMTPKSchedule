@@ -124,12 +124,22 @@ export function generateInfo() {
     }
 
     if (window['groupOrTeacher'] === undefined) {
-        if (window['groupOrTeacher']['group'] === undefined || window['groupOrTeacher']['teacher'] === undefined) {
-            window['groupOrTeacher'] = {"group": "", "teacher": ""}
+        window['groupOrTeacher'] = {"group": "", "teacher": "", "subgroup": ""}
+    } else {
+        if (window['groupOrTeacher']['group'] === undefined) {
+            window['groupOrTeacher']['group'] = ""
+        }
+
+        if (window['groupOrTeacher']['teacher'] === undefined) {
+            window['groupOrTeacher']['teacher'] = ""
+        }
+
+        if (window['groupOrTeacher']['subgroup'] === undefined) {
+            window['groupOrTeacher']['subgroup'] = ""
         }
     }
 
-    window["groupOrTeacherTemp"] = {"group": "", "teacher": ""}
+    window["groupOrTeacherTemp"] = {"group": "", "teacher": "", "subgroup": ""}
 }
 
 export async function fetchGroupOrTeacher() {
@@ -156,7 +166,7 @@ export async function fetchGroupOrTeacher() {
         window['tooltips'] = [true]
     }
 
-    while (window['tooltips'].length < 10 + 1) {
+    while (window['tooltips'].length <= 11) {
         window['tooltips'].push(true)
     }
 
@@ -166,17 +176,27 @@ export async function fetchGroupOrTeacher() {
 
     const groupOrTeacher = response.keys[1].value
     if (groupOrTeacher === "") {
-        window['groupOrTeacher'] = {"group": "", "teacher": ""}
+        window['groupOrTeacher'] = {"group": "", "teacher": "", "subgroup": ""}
     } else {
         try {
             window['groupOrTeacher'] = JSON.parse(groupOrTeacher)
             if (window['groupOrTeacher'] === undefined) {
-                window['groupOrTeacher'] = {"group": "", "teacher": ""}
-            } else if (window['groupOrTeacher']['group'] === undefined || window['groupOrTeacher']['teacher'] === undefined) {
-                window['groupOrTeacher'] = {"group": "", "teacher": ""}
+                window['groupOrTeacher'] = {"group": "", "teacher": "", "subgroup": ""}
+            } else {
+                if (window['groupOrTeacher']['group'] === undefined) {
+                    window['groupOrTeacher']['group'] = ""
+                }
+
+                if (window['groupOrTeacher']['teacher'] === undefined) {
+                    window['groupOrTeacher']['teacher'] = ""
+                }
+
+                if (window['groupOrTeacher']['subgroup'] === undefined) {
+                    window['groupOrTeacher']['subgroup'] = ""
+                }
             }
         } catch {
-            window['groupOrTeacher'] = {"group": "", "teacher": ""}
+            window['groupOrTeacher'] = {"group": "", "teacher": "", "subgroup": ""}
         }
     }
 
@@ -194,21 +214,19 @@ function client() {
         } else if (data['environment']) {
             window['app'] = data['environment']
         } else {
-            window['app'] = 'vk?'
+            window['app'] = 'vk'
         }
 
-        console.log(`app: ${window['app']}`)
-
-        if (window['app'] !== 'ok') {
-            ad().then().catch((error) => console.log(error))
-        }
+        // if (window['app'] !== 'ok') {
+        //     ad().then().catch((error) => console.log(error))
+        // }
     }).catch(error => console.log(error));
 }
 
-async function ad() {
-    setTimeout(() => {
-        bridge.send('VKWebAppShowBannerAd', {
-            banner_location: 'bottom',
-        }).then().catch((error) => console.log(error));
-    }, 3000)
-}
+// async function ad() {
+//     setTimeout(() => {
+//         bridge.send('VKWebAppShowBannerAd', {
+//             banner_location: 'bottom',
+//         }).then().catch((error) => console.log(error));
+//     }, 3000)
+// }
