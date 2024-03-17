@@ -15,6 +15,7 @@ import {format} from "@vkontakte/vkui/dist/lib/date";
 import {Popover} from "@vkontakte/vkui/dist/components/Popover/Popover";
 import config from "../etc/config.json";
 import {fetchTeachers} from "../api/api";
+import bridge from "@vkontakte/vk-bridge";
 
 export const TeacherSch = () => {
     const [tooltip10, setTooltip10] = React.useState(() => window["tooltips"][10]);
@@ -39,12 +40,18 @@ export const TeacherSch = () => {
         setResultStory("load")
     }
 
-    const [teacher, setTeacher] = React.useState();
-    const [teacherName, setTeacherName] = React.useState();
+    const [teacher, setTeacher] = React.useState(window['teacher'] === undefined ? "" : window['teacher']);
+    const [teacherName, setTeacherName] = React.useState(window['teacherName'] === undefined ? "" : window['teacherName']);
 
     const [options, setOptions] = React.useState([]);
     useEffect(() => {
         window['page'] = "teacher"
+
+        try {
+            if (bridge.supports("VKWebAppResizeWindow")) {
+                bridge.send("VKWebAppResizeWindow", {"height": 500}).then().catch(e => {});
+            }
+        } catch {}
 
         if (window['teachers'] !== undefined) {
             if (Array.isArray(window['teachers'])) {
@@ -104,8 +111,8 @@ export const TeacherSch = () => {
     const [error, setError] = React.useState(config.errors.FetchGroupsOrTeachersErr)
     const [active, setActive] = React.useState("main");
     return (
-        <PullToRefresh onRefresh={onRefresh} isFetching={fetching} style={{height: '100%'}}>
-            <Epic activeStory={activeView} style={{padding: '0'}}>
+        <PullToRefresh onRefresh={onRefresh} isFetching={fetching} id="pageSchedule" style={{margin: 'var(--vkui--size_base_padding_vertical--regular) 0'}}>
+            <Epic activeStory={activeView}>
                 <Group id='teacherSelector' separator='hide' mode='plain'>
                     <div style={{flex: '1', display: 'flex', justifyContent: 'right'}}>
                         <Button appearance='negative' align="center" mode="outline"
@@ -130,7 +137,9 @@ export const TeacherSch = () => {
                                         key={option.value}
                                         onClick={() => {
                                             setTeacher(option.value)
+                                            window['teacher'] = option.value
                                             setTeacherName(formatName(option.label))
+                                            window['teacherName'] = formatName(option.label)
                                             setActiveView('main')
                                         }}
                                         after={
@@ -172,7 +181,15 @@ export const TeacherSch = () => {
                         </Popover>
                         <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
                             <Button appearance='accent-invariable' mode='outline'
-                                    onClick={() => setActiveView('teacherSelector')}
+                                    onClick={() => {
+                                        try {
+                                            if (bridge.supports("VKWebAppResizeWindow")) {
+                                                bridge.send("VKWebAppResizeWindow", {"height": 1000}).then().catch(e => {});
+                                            }
+                                        } catch {}
+
+                                        setActiveView('teacherSelector')
+                                    }}
                                     style={{
                                         margin: '0 var(--vkui--size_base_padding_horizontal--regular)',
                                         width: 'max-content'
@@ -190,10 +207,10 @@ export const TeacherSch = () => {
                     <Scrollable setSelected={setSelected} selectedDate={selectedDate} setSelectedDate={change}
                                 selected={selected} type='teacher-schedule' tooltip={false}/>
                     <Epic activeStory={resultStory}>
-                        <Group id="schedule" separator="hide" mode='plain' style={{minHeight: 'calc(100vh/2)'}}>
+                        <Group id="schedule" separator="hide" mode='plain'>
                             {result}
                         </Group>
-                        <Group id="load" separator="hide" mode='plain' style={{minHeight: 'calc(100vh/2)'}}>
+                        <Group id="load" separator="hide" mode='plain'>
                             <Spinner size="large" style={{margin: '10px 0'}}/>
                         </Group>
                     </Epic>

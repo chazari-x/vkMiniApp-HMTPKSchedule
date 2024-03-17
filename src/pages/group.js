@@ -1,7 +1,7 @@
 import {
     Button,
-    Calendar, Cell,
-    Epic, Footer, FormStatus,
+    Calendar, Cell, CustomSelect,
+    Epic, Footer, FormItem, FormStatus,
     Group,
     LocaleProvider, Panel, PullToRefresh, Search,
     Spinner,
@@ -14,36 +14,18 @@ import {format} from "@vkontakte/vkui/dist/lib/date";
 import {Popover} from "@vkontakte/vkui/dist/components/Popover/Popover";
 import {Icon16CalendarOutline, Icon16CancelCircleOutline, Icon20Users3Outline, Icon24Done} from "@vkontakte/icons";
 import config from "../etc/config.json"
-import {fetchGroups} from "../api/api";
+import {fetchGroups, subgroups} from "../api/api";
+import bridge from "@vkontakte/vk-bridge";
 
 export const GroupSch = () => {
-    const [tooltip9, setTooltip9] = React.useState(() => window["tooltips"][9]);
-
-    const date = new Date()
-    let dayNum = date.getDay()-1
-    if (dayNum === -1) {
-        dayNum = 6
-    }
-
-    const [selected, setSelected] = React.useState(`group-schedule${dayNum.toString()}`);
-    const [selectedDate, setSelectedDate] = useState(() => date);
-    const [resultStory, setResultStory] = React.useState('load');
-    const change = (date) => {
-        date = new Date(format(date, "YYYY-MM-DD"))
-        setSelectedDate(date)
-        let dayNum = date.getDay() - 1
-        if (dayNum === -1) {
-            dayNum = 6
-        }
-        setSelected(`group-schedule${dayNum.toString()}`)
-        setResultStory("load")
-    }
-
-    const [group, setGroup] = React.useState();
-    const [groupName, setGroupName] = React.useState();
-
     const [options, setOptions] = React.useState([]);
     useEffect(() => {
+        try {
+            if (bridge.supports("VKWebAppResizeWindow")) {
+                bridge.send("VKWebAppResizeWindow", {"height": 500}).then().catch(e => {});
+            }
+        } catch {}
+
         window['page'] = "group"
 
         if (window['groups'] !== undefined) {
@@ -71,6 +53,31 @@ export const GroupSch = () => {
                 console.log(error)
             });
     }, [])
+
+    const [tooltip9, setTooltip9] = React.useState(() => window["tooltips"][9]);
+
+    const date = new Date()
+    let dayNum = date.getDay()-1
+    if (dayNum === -1) {
+        dayNum = 6
+    }
+
+    const [selected, setSelected] = React.useState(`group-schedule${dayNum.toString()}`);
+    const [selectedDate, setSelectedDate] = useState(() => date);
+    const [resultStory, setResultStory] = React.useState('load');
+    const change = (date) => {
+        date = new Date(format(date, "YYYY-MM-DD"))
+        setSelectedDate(date)
+        let dayNum = date.getDay() - 1
+        if (dayNum === -1) {
+            dayNum = 6
+        }
+        setSelected(`group-schedule${dayNum.toString()}`)
+        setResultStory("load")
+    }
+
+    const [group, setGroup] = React.useState(window['group'] === undefined ? "" : window['group']);
+    const [groupName, setGroupName] = React.useState(window['groupName'] === undefined ? "" : window['groupName']);
 
     const [result, setResult] = React.useState(<div></div>);
     useEffect(() => {
@@ -101,11 +108,16 @@ export const GroupSch = () => {
         setFetching(false);
     }, [result])
 
+    const [subgroup, setSubgroup] = React.useState(window['subgroup'] === undefined || window['subgroup'] === "" ? subgroups[2].value : window['subgroup'])
+    useEffect(() => {
+        window['subgroup'] = subgroup
+    }, [subgroup])
+
     const [error, setError] = React.useState(config.errors.FetchGroupsOrTeachersErr)
     const [active, setActive] = React.useState("main");
     return (
-        <PullToRefresh onRefresh={onRefresh} isFetching={fetching} style={{height: '100%'}}>
-            <Epic activeStory={activeView} style={{padding: '0'}}>
+        <PullToRefresh onRefresh={onRefresh} isFetching={fetching} id="pageSchedule" style={{margin: 'var(--vkui--size_base_padding_vertical--regular) 0'}}>
+            <Epic activeStory={activeView}>
                 <Group id='groupSelector' separator='hide' mode='plain'>
                     <div style={{flex: '1', display: 'flex', justifyContent: 'right'}}>
                         <Button appearance='negative' align="center" mode="outline"
@@ -114,6 +126,12 @@ export const GroupSch = () => {
                                 before={<Icon16CancelCircleOutline/>}
                         >{config.buttons.close}</Button>
                     </div>
+                    <FormItem>
+                        <CustomSelect
+                            placeholder="Выберите подгруппу" options={subgroups}
+                            onChange={event => setSubgroup(event.target.value)} value={subgroup}
+                        />
+                    </FormItem>
                     <Epic activeStory={active}>
                         <Panel id="error">
                             <FormStatus mode='error' header='Произошла ошибка' style={{
@@ -130,7 +148,9 @@ export const GroupSch = () => {
                                         key={option.value}
                                         onClick={() => {
                                             setGroup(option.value)
+                                            window['group'] = option.value
                                             setGroupName(option.label)
+                                            window['groupName'] = option.label
                                             setActiveView('main')
                                         }}
                                         after={
@@ -165,7 +185,15 @@ export const GroupSch = () => {
                         </Popover>
                         <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
                             <Button appearance='accent-invariable' mode='outline'
-                                    onClick={() => setActiveView('groupSelector')}
+                                    onClick={() => {
+                                        try {
+                                            if (bridge.supports("VKWebAppResizeWindow")) {
+                                                bridge.send("VKWebAppResizeWindow", {"height": 1000}).then().catch(e => {});
+                                            }
+                                        } catch {}
+
+                                        setActiveView('groupSelector')
+                                    }}
                                     style={{
                                         margin: '0 var(--vkui--size_base_padding_horizontal--regular)',
                                         width: 'max-content'
@@ -182,10 +210,10 @@ export const GroupSch = () => {
                     </div>
                     <Scrollable setSelected={setSelected} selectedDate={selectedDate} setSelectedDate={change} selected={selected} type='group-schedule' tooltip={false}/>
                     <Epic activeStory={resultStory}>
-                        <Group id="schedule" separator="hide" mode='plain' style={{minHeight: 'calc(100vh/2)'}}>
+                        <Group id="schedule" separator="hide" mode='plain'>
                             {result}
                         </Group>
-                        <Group id="load" separator="hide" mode='plain' style={{minHeight: 'calc(100vh/2)'}}>
+                        <Group id="load" separator="hide" mode='plain'>
                             <Spinner size="large" style={{margin: '10px 0'}}/>
                         </Group>
                     </Epic>

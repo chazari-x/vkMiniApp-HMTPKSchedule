@@ -1,8 +1,13 @@
 import bridge from "@vkontakte/vk-bridge";
 import base64 from "../etc/base64.json";
 import config from "../etc/config.json"
+import {update} from "../utils/utils";
 
 export function onboarding() {
+    if (!window["tooltips"][12]) {
+        return;
+    }
+
     bridge.send('VKWebAppShowSlidesSheet', {
         slides: [
             {
@@ -45,5 +50,13 @@ export function onboarding() {
                 title: config.onboardings.five.title,
                 subtitle: config.onboardings.five.subtitle
             }
-        ]}).then().catch();
+        ]})
+        .then((data) => {
+            if (data.result) {
+                if (data.action === "confirm") {
+                    update(12, undefined)
+                }
+            }
+        })
+        .catch();
 }

@@ -1,10 +1,11 @@
-import React from "react";
+import React, {Component} from "react";
 import {Button, CardGrid, ContentCard, Div, Epic, FormStatus, Group, Link, Spinner,} from "@vkontakte/vkui";
 import ReactDOM from "react-dom/client";
 import {Icon24CalendarOutline, Icon24ExternalLinkOutline, Icon28User, Icon28Users} from "@vkontakte/icons";
 import {Dates} from "../utils/utils";
 import config from '../etc/config.json';
-import {fetchGroupOrTeacher, fetchSchedule} from "../api/api";
+import {fetchGroupOrTeacher, fetchSchedule, subgroups} from "../api/api";
+import bridge from "@vkontakte/vk-bridge";
 
 export const GetGroupSchedule = ({group, date, activePanel, week, year}) => {
     if (group === '' || group === undefined) {
@@ -134,25 +135,50 @@ export const GetMySchedule = ({date, activePanel, week, year}) => {
 }
 
 const renderBlock = (res, elementID) => {
-    const dayNum = parseInt(res[2].replaceAll(elementID, ''), 10)
     try {
-        ReactDOM.createRoot(document.getElementById(res[2])).render(<CardGrid size='l' style={{padding: '0', margin: '0'}}>
-            <RenderSchedule json={res[0]} dayNum={dayNum} err={res[1]}/>
-            {res[1] === null ? (res[0] !== null
-                ? <Link
-                    href={res[0][dayNum]['href']}
-                    target="_blank"
-                    style={{
-                        flex: '1', margin: '0 var(--vkui--size_base_padding_horizontal--regular)',
-                        padding: 'var(--vkui--size_base_padding_vertical--regular) 0'
-                }}>
-                    <Button appearance='accent-invariable' align="center" mode="outline" stretched={true}
-                            after={<Icon24ExternalLinkOutline width={16} height={16} />}
-                            before={<Icon24CalendarOutline width={16} height={16} />}
-                    >{config.texts.CheckSchedule.replace(/&amp;/g, '&')}</Button>
-                </Link> : null) : null}
-        </CardGrid>)
-    } catch (e) {}
+        ReactDOM.createRoot(document.getElementById(res[2])).render(<Block res={res} elementID={elementID}/>)
+    } catch {}
+}
+
+class Block extends Component {
+    constructor(props) {
+        super(props)
+    }
+
+    componentDidMount() {
+        try {
+            const margin = parseInt(getComputedStyle(document.getElementById("pageSchedule"))
+                .getPropertyValue("margin-top").replaceAll("px", ''), 10)
+            const height = document.getElementById("pageSchedule").clientHeight;
+            const headerHeight = document.getElementsByClassName("vkuiPanelHeader").item(0).clientHeight;
+            if (bridge.supports("VKWebAppResizeWindow")) {
+                bridge.send("VKWebAppResizeWindow", {"height": height+headerHeight+margin*2+2}).then().catch(e => {});
+            }
+        } catch (e) {}
+    }
+
+    render() {
+        const { res, elementID } = this.props;
+        const dayNum = parseInt(res[2].replaceAll(elementID, ''), 10)
+        return (
+            <CardGrid size='l' style={{padding: '0', margin: '0'}}>
+                <RenderSchedule json={res[0]} dayNum={dayNum} err={res[1]}/>
+                {res[1] === null ? (res[0] !== null
+                    ? <Link
+                        href={res[0][dayNum]['href']}
+                        target="_blank"
+                        style={{
+                            flex: '1', margin: '0 var(--vkui--size_base_padding_horizontal--regular)',
+                            padding: 'var(--vkui--size_base_padding_vertical--regular) 0'
+                        }}>
+                        <Button appearance='accent-invariable' align="center" mode="outline" stretched={true}
+                                after={<Icon24ExternalLinkOutline width={16} height={16} />}
+                                before={<Icon24CalendarOutline width={16} height={16} />}
+                        >{config.texts.CheckSchedule.replace(/&amp;/g, '&')}</Button>
+                    </Link> : null) : null}
+            </CardGrid>
+        )
+    }
 }
 
 const RenderSchedule = ({ json, dayNum, err }) => {
@@ -197,11 +223,26 @@ const RenderSchedule = ({ json, dayNum, err }) => {
         return acc;
     }, []);
 
-    const color = '#8a8a8a'
     return mergedLessons.map((mergedLesson, index) => {
-        const c = mergedLesson['subgroups'].some(s => (s.subgroup === window['groupOrTeacher']['subgroup']
-            || s.subgroup === "" || window['groupOrTeacher']['subgroup'] === "1 и 2") || window['page'] !== "my")
-            ? '' : '#8a8a8a'
+        let c = '#777'
+        let color = '#555'
+        if ((window['page'] === 'my'
+                && mergedLesson['subgroups'].some(s => (
+                    s.subgroup === window['groupOrTeacher']['subgroup']
+                    || s.subgroup === ""
+                    || window['groupOrTeacher']['subgroup'] === subgroups[2].value
+                )))
+            || (window['page'] === 'group'
+                && mergedLesson['subgroups'].some(s => (
+                    s.subgroup === window['subgroup']
+                    || s.subgroup === ""
+                    || window['subgroup'] === subgroups[2].value
+                )))
+            || window['page'] === 'teacher'
+        ) {
+                c = ''
+                color = '#999'
+        }
 
         return (
             <React.Fragment key={`lesson-${mergedLesson['num']}-num-${index}`}>

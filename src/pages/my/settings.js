@@ -12,19 +12,23 @@ import React, {useEffect} from "react";
 import ReactDOM from "react-dom";
 import {Icon24ExternalLinkOutline} from "@vkontakte/icons";
 import config from "../../etc/config.json";
-import {fetchGroupOrTeacher, fetchGroups, fetchTeachers, updateTooltips} from "../../api/api";
+import {fetchGroupOrTeacher, fetchGroups, fetchTeachers, updateTooltips, subgroups} from "../../api/api";
 import {update} from "../../utils/utils";
+import bridge from "@vkontakte/vk-bridge";
 
 export const Settings = ({setDisabledExitButton}) => {
     useEffect(() => {
         window['groupOrTeacherTemp'] = window['groupOrTeacher']
+        try {
+            const margin = parseInt(getComputedStyle(document.getElementById("pageSchedule"))
+                .getPropertyValue("margin-top").replaceAll("px", ''), 10)
+            const height = document.getElementById("settings-menu").clientHeight;
+            const headerHeight = document.getElementsByClassName("vkuiPanelHeader").item(0).clientHeight;
+            if (bridge.supports("VKWebAppResizeWindow")) {
+                bridge.send("VKWebAppResizeWindow", {"height": height+headerHeight+margin*2+2}).then().catch(e => {});
+            }
+        } catch {}
     }, [])
-
-    const subgroups = [
-        {'label': '1 подгруппа', 'value': '1'},
-        {'label': '2 подгруппа', 'value': '2'},
-        {'label': '1 и 2 подгруппы', 'value': '1 и 2'},
-    ]
 
     const [groupOrTeacherTemp, setGroupOrTeacherTemp] = React.useState(() => window['groupOrTeacher'])
     const [tooltip1, setTooltip1] = React.useState( () => window["tooltips"][1]);
@@ -188,8 +192,8 @@ export const Settings = ({setDisabledExitButton}) => {
 
     const [error, setError] = React.useState(config.errors.FetchGroupsOrTeachersErr)
     const [active, setActive] = React.useState("main");
-    return <Group id='settings-menu' separator='hide' mode='plain' style={{height: 'calc(100vh - var(--vkui--size_panel_header_height--regular)*4)'}}>
-        <CardGrid size="l" style={{height: '100%', display: 'flex', margin: '0', padding: '0'}}>
+    return <Group id='settings-menu' separator='hide' mode='plain'>
+        <CardGrid size="l" style={{display: 'flex', margin: '0', padding: '0'}}>
             <Epic activeStory={active} style={{padding: 0, margin: 0}}>
                 <Panel id="error" style={{padding: 0, margin: 0}}>
                     <FormStatus mode='error' header='Произошла ошибка' style={{

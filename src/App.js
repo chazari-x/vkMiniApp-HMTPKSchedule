@@ -35,7 +35,6 @@ import {useAppearance, useInsets, useAdaptivity} from "@vkontakte/vk-bridge-reac
 import config from "./etc/config.json"
 import {fetchGroupOrTeacher, generateInfo} from "./api/api";
 import {onboarding} from "./onboarding/onboarding";
-import {update} from "./utils/utils";
 
 export const App = () => {
 	window['vkBridgeAppearance'] = useAppearance() || undefined; // Вместо undefined можно задать значение по умолчанию
@@ -58,24 +57,17 @@ export const App = () => {
 	useEffect(() => {
 		(window["groupOrTeacher"] === undefined) ? fetchGroupOrTeacher().then(() => {
 			window["queryParams"] = window.location.search
-			if (window["tooltips"][0]) {
-				onboarding()
-				update(0, undefined)
-			}
+			onboarding()
 
-			setMain("main")
+			setMain("appMain")
 		}).catch(error => {
 			window["queryParams"] = window.location.search
 			console.error(error)
 			generateInfo()
+			onboarding()
 
-			if (window["tooltips"][0]) {
-				onboarding()
-				update(0, undefined)
-			}
-
-			setMain("main")
-		}) : setMain("main")
+			setMain("appMain")
+		}) : setMain("appMain")
 	}, [])
 
 	const Panels = new Map();
@@ -111,7 +103,7 @@ export const App = () => {
 										<Spinner size="large" style={{margin: '10px 0'}}/>
 									</Group>
 								</Panel>
-								<Panel id='main'>
+								<Panel id="appMain">
 									<PanelHeader
 										style={{
 											position: 'fixed',
@@ -153,8 +145,8 @@ export const App = () => {
 												<Group
 													separator="hide" mode='plain'
 													style={{
-														minHeight: 'calc(100vh - var(--vkui--size_panel_header_height--regular) - var(--vkui--size_base_padding_vertical--regular)*2)',
-														padding: 'var(--vkui--size_base_padding_vertical--regular) 0',
+														minHeight: 'calc(100vh - var(--vkui--size_panel_header_height--regular))',
+														padding: '0',
 														backgroundColor: 'var(--vkui--color_background_content)'
 													}}
 												>

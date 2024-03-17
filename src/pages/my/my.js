@@ -64,14 +64,8 @@ export const MySch = () => {
     const [activeStory, setActiveStory] = React.useState('main');
     const [disabledExitButton, setDisabledExitButton] = React.useState(() => tooltip4);
     useEffect(() => {
-        if ((window['groupOrTeacher']['group'] === undefined
-                && window['groupOrTeacher']['teacher'] === undefined)
-            || window['groupOrTeacher']['subgroup'] === undefined) {
-            setActiveStory('settings')
-            setDisabledExitButton(true)
-        } else if ((window['groupOrTeacher']['group'] === ""
-                && window['groupOrTeacher']['teacher'] === "")
-            || window['groupOrTeacher']['subgroup'] === "") {
+        if ((window['groupOrTeacher']['group'] === "" || window['groupOrTeacher']['subgroup'] === "")
+            && window['groupOrTeacher']['teacher'] === "")  {
             setActiveStory('settings')
             setDisabledExitButton(true)
         }
@@ -103,9 +97,9 @@ export const MySch = () => {
 
     const [calendar, setCalendar] = React.useState(false)
     return (
-        <PullToRefresh onRefresh={onRefresh} isFetching={fetching} style={{height: '100%'}}>
-            <Epic activeStory={activeStory} style={{height: '100%'}}>
-                <Group id="main" separator="hide" mode='plain' style={{minHeight: '100%'}}>
+        <PullToRefresh onRefresh={onRefresh} isFetching={fetching} id="pageSchedule" style={{margin: 'var(--vkui--size_base_padding_vertical--regular) 0'}}>
+            <Epic activeStory={activeStory}>
+                <Group id="main" separator="hide" mode='plain'>
                     <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
                         <Popover action="click" shown={calendar} onShownChange={setCalendar}
                                  style={{display: 'flex', justifyContent: 'center', background: 'none'}}
@@ -149,16 +143,16 @@ export const MySch = () => {
                     </div>
                     <Scrollable setSelected={setSelected} selectedDate={selectedDate} setSelectedDate={change} selected={selected} type='my-schedule' tooltip={true}/>
                     <Epic activeStory={resultStory}>
-                        <Group id="schedule" separator="hide" mode='plain' style={{minHeight: 'calc(100vh/2)'}}>
+                        <Group id="schedule" separator="hide" mode='plain'>
                             {result}
                         </Group>
-                        <Group id="load" separator="hide" mode='plain' style={{minHeight: 'calc(100vh/2)'}}>
+                        <Group id="load" separator="hide" mode='plain'>
                             <Spinner size="large" style={{margin: '10px 0'}}/>
                         </Group>
                     </Epic>
                     {snackbar}
                 </Group>
-                <Group id="settings" separator="hide" mode='plain' style={{minHeight: 'calc(100vh - var(--vkui--size_panel_header_height--regular)*2)'}}>
+                <Group id="settings" separator="hide" mode='plain'>
                     <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'flex-end'}}>
                         <TooltipContainer fixed style={{zIndex: 1}}>
                             <Button appearance={window["groupOrTeacher"] === window["groupOrTeacherTemp"] ? 'negative' : 'positive'} mode='outline' style={{

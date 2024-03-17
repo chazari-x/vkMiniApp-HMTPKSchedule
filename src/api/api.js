@@ -118,7 +118,7 @@ export async function updateGroupOrTeacher(openSuccess, openError) {
 export function generateInfo() {
     if (window['tooltips'] === undefined) {
         window['tooltips'] = [true]
-        while (window['tooltips'].length < 10 + 1) {
+        while (window['tooltips'].length <= 12) {
             window['tooltips'].push(true)
         }
     }
@@ -166,7 +166,7 @@ export async function fetchGroupOrTeacher() {
         window['tooltips'] = [true]
     }
 
-    while (window['tooltips'].length <= 11) {
+    while (window['tooltips'].length <= 12) {
         window['tooltips'].push(true)
     }
 
@@ -230,3 +230,9 @@ function client() {
 //         }).then().catch((error) => console.log(error));
 //     }, 3000)
 // }
+
+export const subgroups = [
+    {'label': '1 подгруппа', 'value': '1'},
+    {'label': '2 подгруппа', 'value': '2'},
+    {'label': '1 и 2 подгруппы', 'value': '1 и 2'},
+]
